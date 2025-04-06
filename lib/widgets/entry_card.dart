@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/entry.dart';
+import '../models/user.dart';
 import '../utils/time_formatter.dart';
+import '../screens/user_profile_screen.dart';
 
 class EntryCard extends StatefulWidget {
   final Entry entry;
@@ -73,6 +75,23 @@ class _EntryCardState extends State<EntryCard> {
     });
   }
 
+  void _navigateToUserProfile() {
+    // In a real app, you would fetch the user data from a database or API
+    final user = User(
+      id: '1', // This would be the actual user ID
+      name: _entry.author,
+      email: '${_entry.author.toLowerCase().replaceAll(' ', '.')}@example.com',
+      bio: 'CTIS Dictionary user',
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserProfileScreen(user: user),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -87,11 +106,14 @@ class _EntryCardState extends State<EntryCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'by ${_entry.author}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
+                  InkWell(
+                    onTap: _navigateToUserProfile,
+                    child: Text(
+                      'by ${_entry.author}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                   Text(
@@ -106,10 +128,9 @@ class _EntryCardState extends State<EntryCard> {
                   IconButton(
                     icon: Icon(
                       Icons.thumb_up_outlined,
-                      color:
-                          _entry.userReaction == EntryReaction.liked
-                              ? Colors.green
-                              : Colors.grey,
+                      color: _entry.userReaction == EntryReaction.liked
+                          ? Colors.green
+                          : Colors.grey,
                     ),
                     onPressed: _handleLike,
                     padding: EdgeInsets.zero,
@@ -124,10 +145,9 @@ class _EntryCardState extends State<EntryCard> {
                   IconButton(
                     icon: Icon(
                       Icons.thumb_down_outlined,
-                      color:
-                          _entry.userReaction == EntryReaction.disliked
-                              ? Colors.red
-                              : Colors.grey,
+                      color: _entry.userReaction == EntryReaction.disliked
+                          ? Colors.red
+                          : Colors.grey,
                     ),
                     onPressed: _handleDislike,
                     padding: EdgeInsets.zero,
