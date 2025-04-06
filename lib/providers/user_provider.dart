@@ -1,38 +1,38 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
+import '../models/user_model.dart';
 
 class UserProvider with ChangeNotifier {
-  User? _currentUser;
+  UserModel? _currentUser;
 
   UserProvider() {
     // Initialize with a default user
-    _currentUser = User(
+    _currentUser = UserModel(
       id: '1',
-      name: 'User Name',
+      displayName: 'User Name',
       email: 'user@example.com',
       bio: 'Welcome to CTIS Dictionary!',
     );
   }
 
-  User? get currentUser => _currentUser;
+  UserModel? get currentUser => _currentUser;
 
-  void setUser(User user) {
+  void setUser(UserModel user) {
     _currentUser = user;
     notifyListeners();
   }
 
   void updateUser({
-    String? name,
+    String? displayName,
     String? email,
-    String? profileImageUrl,
+    String? photoURL,
     String? bio,
   }) {
     if (_currentUser != null) {
-      _currentUser = User(
+      _currentUser = UserModel(
         id: _currentUser!.id,
-        name: name ?? _currentUser!.name,
+        displayName: displayName ?? _currentUser!.displayName,
         email: email ?? _currentUser!.email,
-        profileImageUrl: profileImageUrl ?? _currentUser!.profileImageUrl,
+        photoURL: photoURL ?? _currentUser!.photoURL,
         bio: bio ?? _currentUser!.bio,
       );
       notifyListeners();

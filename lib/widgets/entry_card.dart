@@ -1,28 +1,37 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../models/entry.dart';
-import '../models/user.dart';
+import 'package:provider/provider.dart';
+import '../models/entry_model.dart';
+import '../models/user_model.dart';
 import '../utils/time_formatter.dart';
 import '../screens/user_profile_screen.dart';
+import '../providers/auth_provider.dart';
+import '../services/user_service.dart';
 
 class EntryCard extends StatefulWidget {
-  final Entry entry;
+  final EntryModel entry;
 
-  const EntryCard({super.key, required this.entry});
+  const EntryCard({
+    super.key,
+    required this.entry,
+  });
 
   @override
   State<EntryCard> createState() => _EntryCardState();
 }
 
 class _EntryCardState extends State<EntryCard> {
-  late Entry _entry;
+  late EntryModel _entry;
   Timer? _timer;
+  UserModel? _creator;
+  final UserService _userService = UserService();
 
   @override
   void initState() {
     super.initState();
     _entry = widget.entry;
     _startTimer();
+    _loadCreatorData();
   }
 
   @override
@@ -41,59 +50,85 @@ class _EntryCardState extends State<EntryCard> {
     });
   }
 
+  Future<void> _loadCreatorData() async {
+    try {
+      final creator = await _userService.getUser(_entry.createdBy);
+      if (mounted) {
+        setState(() {
+          _creator = creator;
+        });
+      }
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
   void _handleLike() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserId = authProvider.user?.uid;
+    if (currentUserId == null) return;
+
     setState(() {
-      if (_entry.userReaction == EntryReaction.liked) {
+      if (_entry.isLikedBy(currentUserId)) {
         // Remove like
-        _entry.userReaction = EntryReaction.none;
+        _entry.likedBy.remove(currentUserId);
         _entry.likes--;
       } else {
         // Add like and remove dislike if exists
-        if (_entry.userReaction == EntryReaction.disliked) {
+        if (_entry.isDislikedBy(currentUserId)) {
+          _entry.dislikedBy.remove(currentUserId);
           _entry.dislikes--;
         }
-        _entry.userReaction = EntryReaction.liked;
+        _entry.likedBy.add(currentUserId);
         _entry.likes++;
       }
     });
   }
 
   void _handleDislike() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserId = authProvider.user?.uid;
+    if (currentUserId == null) return;
+
     setState(() {
-      if (_entry.userReaction == EntryReaction.disliked) {
+      if (_entry.isDislikedBy(currentUserId)) {
         // Remove dislike
-        _entry.userReaction = EntryReaction.none;
+        _entry.dislikedBy.remove(currentUserId);
         _entry.dislikes--;
       } else {
         // Add dislike and remove like if exists
-        if (_entry.userReaction == EntryReaction.liked) {
+        if (_entry.isLikedBy(currentUserId)) {
+          _entry.likedBy.remove(currentUserId);
           _entry.likes--;
         }
-        _entry.userReaction = EntryReaction.disliked;
+        _entry.dislikedBy.add(currentUserId);
         _entry.dislikes++;
       }
     });
   }
 
   void _navigateToUserProfile() {
-    // In a real app, you would fetch the user data from a database or API
-    final user = User(
-      id: '1', // This would be the actual user ID
-      name: _entry.author,
-      email: '${_entry.author.toLowerCase().replaceAll(' ', '.')}@example.com',
-      bio: 'CTIS Dictionary user',
-    );
+    if (_creator == null) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UserProfileScreen(user: user),
+        builder: (context) => UserProfileScreen(
+          userData: _creator!,
+          isCurrentUser: false,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final currentUserId = authProvider.user?.uid;
+    final isLiked = currentUserId != null && _entry.isLikedBy(currentUserId);
+    final isDisliked =
+        currentUserId != null && _entry.isDislikedBy(currentUserId);
+
     return Column(
       children: [
         Padding(
@@ -101,7 +136,7 @@ class _EntryCardState extends State<EntryCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_entry.content, style: const TextStyle(fontSize: 16)),
+              Text(_entry.term, style: const TextStyle(fontSize: 16)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,7 +144,7 @@ class _EntryCardState extends State<EntryCard> {
                   InkWell(
                     onTap: _navigateToUserProfile,
                     child: Text(
-                      'by ${_entry.author}',
+                      'by ${_creator?.displayName ?? _entry.createdBy}',
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontStyle: FontStyle.italic,
@@ -117,7 +152,8 @@ class _EntryCardState extends State<EntryCard> {
                     ),
                   ),
                   Text(
-                    TimeFormatter.formatTime(_entry.createdAt),
+                    TimeFormatter.formatTime(
+                        _entry.createdAt ?? DateTime.now()),
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ],
@@ -128,9 +164,7 @@ class _EntryCardState extends State<EntryCard> {
                   IconButton(
                     icon: Icon(
                       Icons.thumb_up_outlined,
-                      color: _entry.userReaction == EntryReaction.liked
-                          ? Colors.green
-                          : Colors.grey,
+                      color: isLiked ? Colors.green : Colors.grey,
                     ),
                     onPressed: _handleLike,
                     padding: EdgeInsets.zero,
@@ -145,9 +179,7 @@ class _EntryCardState extends State<EntryCard> {
                   IconButton(
                     icon: Icon(
                       Icons.thumb_down_outlined,
-                      color: _entry.userReaction == EntryReaction.disliked
-                          ? Colors.red
-                          : Colors.grey,
+                      color: isDisliked ? Colors.red : Colors.grey,
                     ),
                     onPressed: _handleDislike,
                     padding: EdgeInsets.zero,

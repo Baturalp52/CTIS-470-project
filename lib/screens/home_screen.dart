@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/topic.dart';
+import '../models/topic_model.dart';
 import '../widgets/topic_card.dart';
 import 'topic_create_screen.dart';
 import 'topic_entries_screen.dart';
@@ -15,37 +15,37 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Topic> topics = [
-    Topic(
+  final List<TopicModel> topics = [
+    TopicModel(
       title: "Computer Networks",
       entryCount: 45,
-      lastUpdate: DateTime.now().subtract(const Duration(hours: 2)),
+      createdBy: 'user1',
       description:
           "Discussions about network protocols, architectures, and implementations",
     ),
-    Topic(
+    TopicModel(
       title: "Operating Systems",
       entryCount: 38,
-      lastUpdate: DateTime.now().subtract(const Duration(hours: 5)),
+      createdBy: 'user1',
       description:
           "Everything about OS concepts, processes, and memory management",
     ),
-    Topic(
+    TopicModel(
       title: "Database Systems",
       entryCount: 52,
-      lastUpdate: DateTime.now().subtract(const Duration(hours: 1)),
+      createdBy: 'user1',
       description: "SQL, NoSQL, and database design principles",
     ),
-    Topic(
+    TopicModel(
       title: "Software Engineering",
       entryCount: 67,
-      lastUpdate: DateTime.now().subtract(const Duration(hours: 3)),
+      createdBy: 'user1',
       description: "Software development methodologies and best practices",
     ),
-    Topic(
+    TopicModel(
       title: "Artificial Intelligence",
       entryCount: 89,
-      lastUpdate: DateTime.now().subtract(const Duration(hours: 4)),
+      createdBy: 'user1',
       description: "Machine learning, neural networks, and AI applications",
     ),
   ];
@@ -59,11 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result != null) {
       setState(() {
         topics.add(
-          Topic(
+          TopicModel(
             title: result['title'],
             description: result['description'],
             entryCount: result['entryCount'],
-            lastUpdate: result['lastUpdate'],
+            createdBy: 'user1',
           ),
         );
       });
@@ -97,8 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) => TopicEntriesScreen(topic: topics[index]),
+                  builder: (context) =>
+                      TopicEntriesScreen(topic: topics[index]),
                 ),
               );
             },

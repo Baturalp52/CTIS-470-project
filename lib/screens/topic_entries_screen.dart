@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/topic.dart';
-import '../models/entry.dart';
+import '../models/topic_model.dart';
+import '../models/entry_model.dart';
 import '../widgets/entry_card.dart';
 import 'entry_create_screen.dart';
 
 class TopicEntriesScreen extends StatefulWidget {
-  final Topic topic;
+  final TopicModel topic;
 
   const TopicEntriesScreen({super.key, required this.topic});
 
@@ -14,62 +14,62 @@ class TopicEntriesScreen extends StatefulWidget {
 }
 
 class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
-  final List<Entry> entries = [
-    Entry(
-      content: 'Just posted this entry a few seconds ago!',
-      author: 'John Doe',
-      createdAt: DateTime.now().subtract(const Duration(seconds: 30)),
+  final List<EntryModel> entries = [
+    EntryModel(
+      term: 'Just posted this entry a few seconds ago!',
+      definition: 'A detailed explanation of the term',
+      topicId: '1',
+      createdBy: 'user1',
       likes: 0,
       dislikes: 0,
-      userReaction: EntryReaction.none,
     ),
-    Entry(
-      content: 'This entry was posted 5 minutes ago.',
-      author: 'Jane Smith',
-      createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+    EntryModel(
+      term: 'This entry was posted 5 minutes ago.',
+      definition: 'Another detailed explanation',
+      topicId: '1',
+      createdBy: 'user2',
       likes: 2,
       dislikes: 0,
-      userReaction: EntryReaction.liked,
     ),
-    Entry(
-      content: 'This entry was posted 45 minutes ago.',
-      author: 'Mike Johnson',
-      createdAt: DateTime.now().subtract(const Duration(minutes: 45)),
+    EntryModel(
+      term: 'This entry was posted 45 minutes ago.',
+      definition: 'Yet another detailed explanation',
+      topicId: '1',
+      createdBy: 'user3',
       likes: 5,
       dislikes: 1,
-      userReaction: EntryReaction.disliked,
     ),
-    Entry(
-      content: 'This entry was posted 2 hours ago.',
-      author: 'Sarah Wilson',
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+    EntryModel(
+      term: 'This entry was posted 2 hours ago.',
+      definition: 'A comprehensive explanation',
+      topicId: '1',
+      createdBy: 'user4',
       likes: 8,
       dislikes: 2,
-      userReaction: EntryReaction.liked,
     ),
-    Entry(
-      content: 'This entry was posted 12 hours ago.',
-      author: 'David Brown',
-      createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+    EntryModel(
+      term: 'This entry was posted 12 hours ago.',
+      definition: 'An in-depth explanation',
+      topicId: '1',
+      createdBy: 'user5',
       likes: 15,
       dislikes: 3,
-      userReaction: EntryReaction.none,
     ),
-    Entry(
-      content: 'This entry was posted 1 day ago.',
-      author: 'Emily Davis',
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+    EntryModel(
+      term: 'This entry was posted 1 day ago.',
+      definition: 'A thorough explanation',
+      topicId: '1',
+      createdBy: 'user6',
       likes: 20,
       dislikes: 4,
-      userReaction: EntryReaction.disliked,
     ),
-    Entry(
-      content: 'This entry was posted 3 days ago.',
-      author: 'Robert Taylor',
-      createdAt: DateTime.now().subtract(const Duration(days: 3)),
+    EntryModel(
+      term: 'This entry was posted 3 days ago.',
+      definition: 'A complete explanation',
+      topicId: '1',
+      createdBy: 'user7',
       likes: 25,
       dislikes: 5,
-      userReaction: EntryReaction.liked,
     ),
   ];
 
@@ -82,11 +82,13 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
     if (result != null) {
       setState(() {
         entries.add(
-          Entry(
-            content: result,
-            author: 'Current User', // TODO: Replace with actual user
-            createdAt: DateTime.now(),
-            userReaction: EntryReaction.none,
+          EntryModel(
+            term: result['term'],
+            definition: result['definition'],
+            topicId: widget.topic.id!,
+            createdBy: 'currentUser', // TODO: Replace with actual user
+            likes: 0,
+            dislikes: 0,
           ),
         );
       });

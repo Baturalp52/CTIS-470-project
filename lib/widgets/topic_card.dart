@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/topic.dart';
+import '../models/topic_model.dart';
 import '../utils/time_formatter.dart';
 
 class TopicCard extends StatelessWidget {
-  final Topic topic;
+  final TopicModel topic;
   final VoidCallback? onTap;
 
   const TopicCard({super.key, required this.topic, this.onTap});
@@ -44,7 +44,7 @@ class TopicCard extends StatelessWidget {
                     Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
                     const SizedBox(width: 4),
                     Text(
-                      'Last updated: ${TimeFormatter.formatTime(topic.lastUpdate)}',
+                      'Last updated: ${TimeFormatter.formatTime(topic.updatedAt ?? DateTime.now())}',
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ],

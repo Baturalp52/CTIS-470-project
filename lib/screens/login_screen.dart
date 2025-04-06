@@ -21,9 +21,45 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.signIn(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (authProvider.error != null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authProvider.error!)),
+      );
+    } else {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.signInWithGoogle();
+
+    if (authProvider.error != null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authProvider.error!)),
+      );
+    } else {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -75,77 +111,33 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return Column(
-                        children: [
-                          if (authProvider.error != null)
-                            Text(
-                              authProvider.error!,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: authProvider.isLoading
-                                ? null
-                                : () async {
-                                    if (_formKey.currentState!.validate()) {
-                                      final navigator = Navigator.of(context);
-                                      await authProvider.signIn(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      );
-                                      if (authProvider.isAuthenticated &&
-                                          mounted) {
-                                        navigator.pushReplacementNamed('/home');
-                                      }
-                                    }
-                                  },
-                            child: authProvider.isLoading
-                                ? const CircularProgressIndicator()
-                                : const Text('Login'),
-                          ),
-                        ],
-                      );
-                    },
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: authProvider.isLoading ? null : _signIn,
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text('Login'),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('OR'),
-                  const SizedBox(height: 16),
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return ElevatedButton.icon(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () async {
-                                await authProvider.signInWithGoogle();
-                                if (mounted) {
-                                  if (authProvider.isAuthenticated) {
-                                    Navigator.of(context)
-                                        .pushReplacementNamed('/home');
-                                  }
-                                }
-                              },
-                        icon: Image.asset(
-                          'assets/google_logo.png',
-                          height: 24,
-                        ),
-                        label: const Text('Sign in with Google'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                      );
-                    },
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed:
+                          authProvider.isLoading ? null : _signInWithGoogle,
+                      icon: Image.asset(
+                        'assets/google_logo.png',
+                        height: 24,
+                      ),
+                      label: const Text('Sign in with Google'),
+                    ),
                   ),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/register');
+                      Navigator.of(context).pushReplacementNamed('/register');
                     },
                     child: const Text('Don\'t have an account? Register'),
                   ),

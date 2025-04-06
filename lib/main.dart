@@ -9,6 +9,9 @@ import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
+import 'services/user_service.dart';
+import 'services/topic_service.dart';
+import 'services/entry_service.dart';
 
 void main() async {
   try {
@@ -24,6 +27,9 @@ void main() async {
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (_) => UserProvider()),
           Provider(create: (_) => AuthService(prefs)),
+          Provider(create: (_) => UserService()),
+          Provider(create: (_) => TopicService()),
+          Provider(create: (_) => EntryService()),
           ChangeNotifierProxyProvider<AuthService, AuthProvider>(
             create: (context) => AuthProvider(context.read<AuthService>()),
             update: (context, authService, previous) =>

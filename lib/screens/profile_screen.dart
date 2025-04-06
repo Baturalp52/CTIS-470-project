@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
+import '../providers/auth_provider.dart';
 import 'user_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -8,19 +8,19 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        final user = userProvider.currentUser;
-        if (user == null) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final userData = authProvider.userData;
+        if (userData == null) {
           return const Scaffold(
             body: Center(
-              child: Text('User not found'),
+              child: CircularProgressIndicator(),
             ),
           );
         }
 
         return UserProfileScreen(
-          user: user,
+          userData: userData,
           isCurrentUser: true,
         );
       },

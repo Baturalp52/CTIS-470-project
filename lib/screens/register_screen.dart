@@ -14,18 +14,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _displayNameController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _displayNameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.register(
+      _emailController.text.trim(),
+      _passwordController.text,
+      _displayNameController.text.trim(),
+    );
+
+    if (authProvider.error != null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authProvider.error!)),
+      );
+    } else {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -48,6 +72,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 32),
+                  TextFormField(
+                    controller: _displayNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Display Name',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your display name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -98,44 +136,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return Column(
-                        children: [
-                          if (authProvider.error != null)
-                            Text(
-                              authProvider.error!,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: authProvider.isLoading
-                                ? null
-                                : () async {
-                                    if (_formKey.currentState!.validate()) {
-                                      await authProvider.register(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      );
-                                      if (authProvider.isAuthenticated &&
-                                          mounted) {
-                                        Navigator.of(context)
-                                            .pushReplacementNamed('/home');
-                                      }
-                                    }
-                                  },
-                            child: authProvider.isLoading
-                                ? const CircularProgressIndicator()
-                                : const Text('Register'),
-                          ),
-                        ],
-                      );
-                    },
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: authProvider.isLoading ? null : _register,
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text('Register'),
+                    ),
                   ),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pushReplacementNamed('/login');
                     },
                     child: const Text('Already have an account? Login'),
                   ),
