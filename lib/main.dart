@@ -13,18 +13,10 @@ import 'services/auth_service.dart';
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    print('Flutter binding initialized');
 
-    try {
-      await Firebase.initializeApp();
-      print('Firebase initialized successfully');
-    } catch (e) {
-      print('Error initializing Firebase: $e');
-      rethrow;
-    }
+    await Firebase.initializeApp();
 
     final prefs = await SharedPreferences.getInstance();
-    print('SharedPreferences initialized: ${prefs.getBool('isLoggedIn')}');
 
     runApp(
       MultiProvider(
@@ -42,7 +34,6 @@ void main() async {
       ),
     );
   } catch (e) {
-    print('Error in main(): $e');
     runApp(
       MaterialApp(
         home: Scaffold(
@@ -84,8 +75,6 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    print(
-        'AuthWrapper - isLoading: ${authProvider.isLoading}, isAuthenticated: ${authProvider.isAuthenticated}');
 
     if (authProvider.isLoading) {
       return const Scaffold(
@@ -96,11 +85,9 @@ class AuthWrapper extends StatelessWidget {
     }
 
     if (authProvider.isAuthenticated) {
-      print('User is authenticated, navigating to HomeScreen');
       return const HomeScreen(title: 'CTIS Dictionary');
     }
 
-    print('User is not authenticated, showing LoginScreen');
     return const LoginScreen();
   }
 }
