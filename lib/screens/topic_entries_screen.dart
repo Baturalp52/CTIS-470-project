@@ -148,6 +148,11 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
     }
   }
 
+  Future<void> _refreshEntries() async {
+    final entryService = Provider.of<EntryService>(context, listen: false);
+    await entryService.streamEntries(topicId: _currentTopic.id).first;
+  }
+
   @override
   Widget build(BuildContext context) {
     final topicProvider = Provider.of<TopicProvider>(context);
@@ -218,11 +223,14 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
 
           return Stack(
             children: [
-              ListView.builder(
-                itemCount: entries.length,
-                itemBuilder: (context, index) {
-                  return EntryCard(entry: entries[index]);
-                },
+              RefreshIndicator(
+                onRefresh: _refreshEntries,
+                child: ListView.builder(
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    return EntryCard(entry: entries[index]);
+                  },
+                ),
               ),
               if (_isDeleting)
                 Container(

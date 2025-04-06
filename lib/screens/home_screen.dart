@@ -60,6 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _refreshTopics() async {
+    await Provider.of<TopicProvider>(context, listen: false).loadTopics();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,29 +110,32 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          return ListView.builder(
-            itemCount: topicProvider.topics.length,
-            itemBuilder: (context, index) {
-              final topic = topicProvider.topics[index];
-              return TopicCard(
-                topic: topic,
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TopicEntriesScreen(topic: topic),
-                    ),
-                  );
-                  if (result == true) {
-                    // Reload topics when returning from entries screen
-                    Provider.of<TopicProvider>(context, listen: false)
-                        .loadTopics();
-                  }
-                },
-                onEdit: () => _navigateToEditScreen(topic),
-                onDelete: () => _deleteTopic(topic),
-              );
-            },
+          return RefreshIndicator(
+            onRefresh: _refreshTopics,
+            child: ListView.builder(
+              itemCount: topicProvider.topics.length,
+              itemBuilder: (context, index) {
+                final topic = topicProvider.topics[index];
+                return TopicCard(
+                  topic: topic,
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TopicEntriesScreen(topic: topic),
+                      ),
+                    );
+                    if (result == true) {
+                      // Reload topics when returning from entries screen
+                      Provider.of<TopicProvider>(context, listen: false)
+                          .loadTopics();
+                    }
+                  },
+                  onEdit: () => _navigateToEditScreen(topic),
+                  onDelete: () => _deleteTopic(topic),
+                );
+              },
+            ),
           );
         },
       ),
