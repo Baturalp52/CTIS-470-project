@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/topic_model.dart';
+import '../providers/topic_provider.dart';
 import '../widgets/topic_card.dart';
 import 'topic_create_screen.dart';
 import 'topic_entries_screen.dart';
@@ -15,58 +17,39 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<TopicModel> topics = [
-    TopicModel(
-      title: "Computer Networks",
-      entryCount: 45,
-      createdBy: 'user1',
-      description:
-          "Discussions about network protocols, architectures, and implementations",
-    ),
-    TopicModel(
-      title: "Operating Systems",
-      entryCount: 38,
-      createdBy: 'user1',
-      description:
-          "Everything about OS concepts, processes, and memory management",
-    ),
-    TopicModel(
-      title: "Database Systems",
-      entryCount: 52,
-      createdBy: 'user1',
-      description: "SQL, NoSQL, and database design principles",
-    ),
-    TopicModel(
-      title: "Software Engineering",
-      entryCount: 67,
-      createdBy: 'user1',
-      description: "Software development methodologies and best practices",
-    ),
-    TopicModel(
-      title: "Artificial Intelligence",
-      entryCount: 89,
-      createdBy: 'user1',
-      description: "Machine learning, neural networks, and AI applications",
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Load topics when the screen is first shown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TopicProvider>(context, listen: false).loadTopics();
+    });
+  }
 
-  void _navigateToCreateScreen() async {
-    final result = await Navigator.push(
+  void _navigateToCreateScreen() {
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const TopicCreateScreen()),
     );
+  }
 
-    if (result != null) {
-      setState(() {
-        topics.add(
-          TopicModel(
-            title: result['title'],
-            description: result['description'],
-            entryCount: result['entryCount'],
-            createdBy: 'user1',
-          ),
-        );
-      });
+  void _navigateToEditScreen(TopicModel topic) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TopicCreateScreen(topic: topic),
+      ),
+    );
+  }
+
+  Future<void> _deleteTopic(TopicModel topic) async {
+    final topicProvider = Provider.of<TopicProvider>(context, listen: false);
+    final success = await topicProvider.deleteTopic(topic.id!);
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(topicProvider.error ?? 'Failed to delete topic')),
+      );
     }
   }
 
@@ -88,18 +71,50 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: topics.length,
-        itemBuilder: (context, index) {
-          return TopicCard(
-            topic: topics[index],
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      TopicEntriesScreen(topic: topics[index]),
-                ),
+      body: Consumer<TopicProvider>(
+        builder: (context, topicProvider, child) {
+          if (topicProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (topicProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(topicProvider.error!),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => topicProvider.loadTopics(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (topicProvider.topics.isEmpty) {
+            return const Center(
+              child: Text('No topics found. Create your first topic!'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: topicProvider.topics.length,
+            itemBuilder: (context, index) {
+              final topic = topicProvider.topics[index];
+              return TopicCard(
+                topic: topic,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TopicEntriesScreen(topic: topic),
+                    ),
+                  );
+                },
+                onEdit: () => _navigateToEditScreen(topic),
+                onDelete: () => _deleteTopic(topic),
               );
             },
           );

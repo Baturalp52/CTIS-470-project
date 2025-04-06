@@ -4,7 +4,6 @@ import 'base_model.dart';
 class TopicModel extends BaseModel {
   String title;
   String description;
-  String? imageUrl;
   int entryCount;
   String createdBy;
 
@@ -12,7 +11,6 @@ class TopicModel extends BaseModel {
     String? id,
     required this.title,
     required this.description,
-    this.imageUrl,
     this.entryCount = 0,
     required this.createdBy,
     DateTime? createdAt,
@@ -28,7 +26,6 @@ class TopicModel extends BaseModel {
       id: id,
       title: map['title'],
       description: map['description'],
-      imageUrl: map['imageUrl'],
       entryCount: map['entryCount'] ?? 0,
       createdBy: map['createdBy'],
       createdAt: BaseModel.fromTimestamp(map['createdAt']),
@@ -42,7 +39,6 @@ class TopicModel extends BaseModel {
     return {
       'title': title,
       'description': description,
-      'imageUrl': imageUrl,
       'entryCount': entryCount,
       'createdBy': createdBy,
       'createdAt': BaseModel.toTimestamp(createdAt),

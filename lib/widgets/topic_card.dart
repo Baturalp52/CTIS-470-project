@@ -5,8 +5,16 @@ import '../utils/time_formatter.dart';
 class TopicCard extends StatelessWidget {
   final TopicModel topic;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const TopicCard({super.key, required this.topic, this.onTap});
+  const TopicCard({
+    super.key,
+    required this.topic,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +27,53 @@ class TopicCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  topic.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        topic.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (onEdit != null || onDelete != null)
+                      PopupMenuButton<String>(
+                        itemBuilder: (context) => [
+                          if (onEdit != null)
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                          if (onDelete != null)
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                        ],
+                        onSelected: (value) {
+                          if (value == 'edit' && onEdit != null) {
+                            onEdit!();
+                          } else if (value == 'delete' && onDelete != null) {
+                            onDelete!();
+                          }
+                        },
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(

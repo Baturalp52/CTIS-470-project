@@ -8,6 +8,7 @@ import 'screens/register_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/topic_provider.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/topic_service.dart';
@@ -34,6 +35,15 @@ void main() async {
             create: (context) => AuthProvider(context.read<AuthService>()),
             update: (context, authService, previous) =>
                 previous ?? AuthProvider(authService),
+          ),
+          ChangeNotifierProxyProvider2<AuthService, TopicService,
+              TopicProvider>(
+            create: (context) => TopicProvider(
+              context.read<TopicService>(),
+              context.read<AuthService>(),
+            ),
+            update: (context, authService, topicService, previous) =>
+                previous ?? TopicProvider(topicService, authService),
           ),
         ],
         child: const MyApp(),

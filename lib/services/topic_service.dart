@@ -48,4 +48,9 @@ class TopicService extends FirestoreService {
       'entryCount': FieldValue.increment(-1),
     });
   }
+
+  @override
+  Future<void> delete(String collection, String id) async {
+    await super.delete(collection, id);
+  }
 }
