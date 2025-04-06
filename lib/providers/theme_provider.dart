@@ -35,6 +35,12 @@ class ThemeProvider with ChangeNotifier {
         backgroundColor: Color(0xFF8E272A),
         foregroundColor: Colors.white,
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF8E272A),
+          foregroundColor: Colors.white,
+        ),
+      ),
     );
 
     return baseTheme;

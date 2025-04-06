@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/auth_provider.dart';
 import 'edit_profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -11,8 +12,8 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: Consumer2<ThemeProvider, UserProvider>(
-        builder: (context, themeProvider, userProvider, child) {
+      body: Consumer3<ThemeProvider, UserProvider, AuthProvider>(
+        builder: (context, themeProvider, userProvider, authProvider, child) {
           return ListView(
             children: [
               // Profile Section
@@ -77,8 +78,14 @@ class SettingsScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
-                onTap: () {
-                  // TODO: Implement logout functionality
+                onTap: () async {
+                  await authProvider.signOut();
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/',
+                      (route) => false,
+                    );
+                  }
                 },
               ),
             ],

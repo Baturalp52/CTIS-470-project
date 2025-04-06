@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1034228384766",
+    "project_id": "ctis470-project",
+    "storage_bucket": "ctis470-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1034228384766:android:88d35937123161a04ab6af",
+        "android_client_info": {
+          "package_name": "com.example.ctis_dictionary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1034228384766-3ual1p1hijsn6umbopr5d3cbqvmnp3r1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjVfFxQNcHpeUyYq_ZivJKFxl1O47f-mM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1034228384766-3ual1p1hijsn6umbopr5d3cbqvmnp3r1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1034228384766-ocuu6nsnf44ilj0mo4ml5t7rpna69mkf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ctisDictionary"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
