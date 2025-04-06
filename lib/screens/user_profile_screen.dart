@@ -24,40 +24,29 @@ class UserProfileScreen extends StatelessWidget {
     final Map<TopicModel, List<EntryModel>> userEntriesByTopic = {
       TopicModel(
         title: "Computer Networks",
-        entryCount: 3,
         createdBy: userData.id!,
         description: "Discussions about network protocols",
       ): [
         EntryModel(
-          term: "Understanding TCP/IP protocol stack",
-          definition: "A detailed explanation of the TCP/IP protocol stack",
+          content: "Understanding TCP/IP protocol stack",
           topicId: "1",
           createdBy: userData.id!,
-          likes: 5,
-          dislikes: 0,
         ),
         EntryModel(
-          term: "Network security best practices",
-          definition: "Essential security practices for network administrators",
+          content: "Network security best practices",
           topicId: "1",
           createdBy: userData.id!,
-          likes: 8,
-          dislikes: 1,
         ),
       ],
       TopicModel(
         title: "Operating Systems",
-        entryCount: 2,
         createdBy: userData.id!,
         description: "OS concepts and memory management",
       ): [
         EntryModel(
-          term: "Process scheduling algorithms",
-          definition: "Different approaches to process scheduling in OS",
+          content: "Process scheduling algorithms",
           topicId: "2",
           createdBy: userData.id!,
-          likes: 12,
-          dislikes: 2,
         ),
       ],
     };

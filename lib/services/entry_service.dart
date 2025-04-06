@@ -41,27 +41,49 @@ class EntryService extends FirestoreService {
     );
   }
 
-  Future<void> incrementLikes(String entryId) async {
+  Future<void> likeEntry(String entryId, String userId) async {
+    final entry = await getEntry(entryId);
+    if (entry == null) throw Exception('Entry not found');
+
+    // Remove from dislikedBy if exists
+    if (entry.dislikedBy.contains(userId)) {
+      await firestore.collection(collection).doc(entryId).update({
+        'dislikedBy': FieldValue.arrayRemove([userId]),
+      });
+    }
+
+    // Add to likedBy
     await firestore.collection(collection).doc(entryId).update({
-      'likes': FieldValue.increment(1),
+      'likedBy': FieldValue.arrayUnion([userId]),
     });
   }
 
-  Future<void> decrementLikes(String entryId) async {
+  Future<void> unlikeEntry(String entryId, String userId) async {
     await firestore.collection(collection).doc(entryId).update({
-      'likes': FieldValue.increment(-1),
+      'likedBy': FieldValue.arrayRemove([userId]),
     });
   }
 
-  Future<void> incrementDislikes(String entryId) async {
+  Future<void> dislikeEntry(String entryId, String userId) async {
+    final entry = await getEntry(entryId);
+    if (entry == null) throw Exception('Entry not found');
+
+    // Remove from likedBy if exists
+    if (entry.likedBy.contains(userId)) {
+      await firestore.collection(collection).doc(entryId).update({
+        'likedBy': FieldValue.arrayRemove([userId]),
+      });
+    }
+
+    // Add to dislikedBy
     await firestore.collection(collection).doc(entryId).update({
-      'dislikes': FieldValue.increment(1),
+      'dislikedBy': FieldValue.arrayUnion([userId]),
     });
   }
 
-  Future<void> decrementDislikes(String entryId) async {
+  Future<void> undislikeEntry(String entryId, String userId) async {
     await firestore.collection(collection).doc(entryId).update({
-      'dislikes': FieldValue.increment(-1),
+      'dislikedBy': FieldValue.arrayRemove([userId]),
     });
   }
 }

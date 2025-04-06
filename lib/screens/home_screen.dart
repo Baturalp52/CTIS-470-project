@@ -26,6 +26,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload topics when returning to this screen
+    Provider.of<TopicProvider>(context, listen: false).loadTopics();
+  }
+
   void _navigateToCreateScreen() {
     Navigator.push(
       context,
@@ -105,13 +112,18 @@ class _HomeScreenState extends State<HomeScreen> {
               final topic = topicProvider.topics[index];
               return TopicCard(
                 topic: topic,
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => TopicEntriesScreen(topic: topic),
                     ),
                   );
+                  if (result == true) {
+                    // Reload topics when returning from entries screen
+                    Provider.of<TopicProvider>(context, listen: false)
+                        .loadTopics();
+                  }
                 },
                 onEdit: () => _navigateToEditScreen(topic),
                 onDelete: () => _deleteTopic(topic),

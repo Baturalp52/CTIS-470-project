@@ -1,30 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_model.dart';
 
 class EntryModel extends BaseModel {
-  String term;
-  String definition;
+  String content;
   String topicId;
   String createdBy;
-  int likes;
-  int dislikes;
-  List<String>? tags;
-  String? imageUrl;
-  String? example;
   List<String> likedBy;
   List<String> dislikedBy;
 
   EntryModel({
     String? id,
-    required this.term,
-    required this.definition,
+    required this.content,
     required this.topicId,
     required this.createdBy,
-    this.likes = 0,
-    this.dislikes = 0,
-    this.tags,
-    this.imageUrl,
-    this.example,
     this.likedBy = const [],
     this.dislikedBy = const [],
     DateTime? createdAt,
@@ -38,15 +25,9 @@ class EntryModel extends BaseModel {
   factory EntryModel.fromMap(Map<String, dynamic> map, String id) {
     return EntryModel(
       id: id,
-      term: map['term'],
-      definition: map['definition'],
+      content: map['content'],
       topicId: map['topicId'],
       createdBy: map['createdBy'],
-      likes: map['likes'] ?? 0,
-      dislikes: map['dislikes'] ?? 0,
-      tags: List<String>.from(map['tags'] ?? []),
-      imageUrl: map['imageUrl'],
-      example: map['example'],
       likedBy: List<String>.from(map['likedBy'] ?? []),
       dislikedBy: List<String>.from(map['dislikedBy'] ?? []),
       createdAt: BaseModel.fromTimestamp(map['createdAt']),
@@ -58,21 +39,18 @@ class EntryModel extends BaseModel {
   Map<String, dynamic> toMap() {
     updateTimestamps();
     return {
-      'term': term,
-      'definition': definition,
+      'content': content,
       'topicId': topicId,
       'createdBy': createdBy,
-      'likes': likes,
-      'dislikes': dislikes,
-      'tags': tags,
-      'imageUrl': imageUrl,
-      'example': example,
       'likedBy': likedBy,
       'dislikedBy': dislikedBy,
       'createdAt': BaseModel.toTimestamp(createdAt),
       'updatedAt': BaseModel.toTimestamp(updatedAt),
     };
   }
+
+  int get likes => likedBy.length;
+  int get dislikes => dislikedBy.length;
 
   bool isLikedBy(String userId) => likedBy.contains(userId);
   bool isDislikedBy(String userId) => dislikedBy.contains(userId);

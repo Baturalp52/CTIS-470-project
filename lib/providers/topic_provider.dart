@@ -82,7 +82,6 @@ class TopicProvider with ChangeNotifier {
         id: topic.id,
         title: title,
         description: description,
-        entryCount: topic.entryCount,
         createdBy: topic.createdBy,
         createdAt: topic.createdAt,
       );

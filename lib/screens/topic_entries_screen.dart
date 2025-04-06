@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/topic_model.dart';
 import '../models/entry_model.dart';
 import '../providers/topic_provider.dart';
+import '../providers/auth_provider.dart';
 import '../services/entry_service.dart';
 import '../widgets/entry_card.dart';
 import 'entry_create_screen.dart';
@@ -20,64 +21,6 @@ class TopicEntriesScreen extends StatefulWidget {
 class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
   late TopicModel _currentTopic;
   bool _isDeleting = false;
-  final List<EntryModel> entries = [
-    EntryModel(
-      term: 'Just posted this entry a few seconds ago!',
-      definition: 'A detailed explanation of the term',
-      topicId: '1',
-      createdBy: 'user1',
-      likes: 0,
-      dislikes: 0,
-    ),
-    EntryModel(
-      term: 'This entry was posted 5 minutes ago.',
-      definition: 'Another detailed explanation',
-      topicId: '1',
-      createdBy: 'user2',
-      likes: 2,
-      dislikes: 0,
-    ),
-    EntryModel(
-      term: 'This entry was posted 45 minutes ago.',
-      definition: 'Yet another detailed explanation',
-      topicId: '1',
-      createdBy: 'user3',
-      likes: 5,
-      dislikes: 1,
-    ),
-    EntryModel(
-      term: 'This entry was posted 2 hours ago.',
-      definition: 'A comprehensive explanation',
-      topicId: '1',
-      createdBy: 'user4',
-      likes: 8,
-      dislikes: 2,
-    ),
-    EntryModel(
-      term: 'This entry was posted 12 hours ago.',
-      definition: 'An in-depth explanation',
-      topicId: '1',
-      createdBy: 'user5',
-      likes: 15,
-      dislikes: 3,
-    ),
-    EntryModel(
-      term: 'This entry was posted 1 day ago.',
-      definition: 'A thorough explanation',
-      topicId: '1',
-      createdBy: 'user6',
-      likes: 20,
-      dislikes: 4,
-    ),
-    EntryModel(
-      term: 'This entry was posted 3 days ago.',
-      definition: 'A complete explanation',
-      topicId: '1',
-      createdBy: 'user7',
-      likes: 25,
-      dislikes: 5,
-    ),
-  ];
 
   @override
   void initState() {
@@ -92,18 +35,34 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
     );
 
     if (result != null) {
-      setState(() {
-        entries.add(
-          EntryModel(
-            term: result['term'],
-            definition: result['definition'],
-            topicId: _currentTopic.id!,
-            createdBy: 'currentUser', // TODO: Replace with actual user
-            likes: 0,
-            dislikes: 0,
-          ),
+      final entryService = Provider.of<EntryService>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final currentUserId = authProvider.user?.uid;
+
+      if (currentUserId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('You must be logged in to create an entry')),
+          );
+        }
+        return;
+      }
+
+      try {
+        final entry = EntryModel(
+          content: result['content'],
+          topicId: _currentTopic.id!,
+          createdBy: currentUserId,
         );
-      });
+        await entryService.createEntry(entry);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create entry: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -192,22 +151,33 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
   @override
   Widget build(BuildContext context) {
     final topicProvider = Provider.of<TopicProvider>(context);
+    final entryService = Provider.of<EntryService>(context);
     final canEdit =
         topicProvider.topics.where((t) => t.id == _currentTopic.id).isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, true),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_currentTopic.title),
-            Text(
-              '${entries.length} entries',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
+            StreamBuilder<List<EntryModel>>(
+              stream: entryService.streamEntries(topicId: _currentTopic.id),
+              builder: (context, snapshot) {
+                final count = snapshot.data?.length ?? 0;
+                return Text(
+                  '$count entries',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -233,22 +203,37 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
           ],
         ],
       ),
-      body: Stack(
-        children: [
-          ListView.builder(
-            itemCount: entries.length,
-            itemBuilder: (context, index) {
-              return EntryCard(entry: entries[index]);
-            },
-          ),
-          if (_isDeleting)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
+      body: StreamBuilder<List<EntryModel>>(
+        stream: entryService.streamEntries(topicId: _currentTopic.id),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final entries = snapshot.data!;
+
+          return Stack(
+            children: [
+              ListView.builder(
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  return EntryCard(entry: entries[index]);
+                },
               ),
-            ),
-        ],
+              if (_isDeleting)
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _isDeleting ? null : _navigateToCreateEntry,

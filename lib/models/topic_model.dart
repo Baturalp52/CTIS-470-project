@@ -1,17 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_model.dart';
 
 class TopicModel extends BaseModel {
   String title;
   String description;
-  int entryCount;
   String createdBy;
 
   TopicModel({
     String? id,
     required this.title,
     required this.description,
-    this.entryCount = 0,
     required this.createdBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -26,7 +23,6 @@ class TopicModel extends BaseModel {
       id: id,
       title: map['title'],
       description: map['description'],
-      entryCount: map['entryCount'] ?? 0,
       createdBy: map['createdBy'],
       createdAt: BaseModel.fromTimestamp(map['createdAt']),
       updatedAt: BaseModel.fromTimestamp(map['updatedAt']),
@@ -39,7 +35,6 @@ class TopicModel extends BaseModel {
     return {
       'title': title,
       'description': description,
-      'entryCount': entryCount,
       'createdBy': createdBy,
       'createdAt': BaseModel.toTimestamp(createdAt),
       'updatedAt': BaseModel.toTimestamp(updatedAt),

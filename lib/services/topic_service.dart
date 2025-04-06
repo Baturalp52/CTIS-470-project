@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/topic_model.dart';
 import 'firestore_service.dart';
+import 'entry_service.dart';
 
 class TopicService extends FirestoreService {
   static const String collection = 'topics';
+  final EntryService _entryService = EntryService();
 
   Future<String> createTopic(TopicModel topic) async {
     return create(collection, topic);
@@ -37,16 +38,9 @@ class TopicService extends FirestoreService {
     );
   }
 
-  Future<void> incrementEntryCount(String topicId) async {
-    await firestore.collection(collection).doc(topicId).update({
-      'entryCount': FieldValue.increment(1),
-    });
-  }
-
-  Future<void> decrementEntryCount(String topicId) async {
-    await firestore.collection(collection).doc(topicId).update({
-      'entryCount': FieldValue.increment(-1),
-    });
+  Future<int> getEntryCount(String topicId) async {
+    final entries = await _entryService.streamEntries(topicId: topicId).first;
+    return entries.length;
   }
 
   @override
