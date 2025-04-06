@@ -118,23 +118,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 )
                               : null,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: CircleAvatar(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            child: IconButton(
-                              icon: const Icon(Icons.camera_alt,
-                                  color: Colors.white),
-                              onPressed: _isLoading
-                                  ? null
-                                  : () {
-                                      // TODO: Implement image picker
-                                    },
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
