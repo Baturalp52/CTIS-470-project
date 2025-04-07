@@ -20,8 +20,6 @@ class AuthService {
 
   // Create or update user in Firestore
   Future<void> _createOrUpdateUser(User user, {String? displayName}) async {
-    print('Creating/updating user in Firestore: ${user.uid}');
-
     final userModel = UserModel(
       id: user.uid,
       email: user.email,
@@ -32,132 +30,86 @@ class AuthService {
       updatedAt: DateTime.now(),
     );
 
-    print('User model created: ${userModel.toMap()}');
-
-    try {
-      // First try to get the user to check if they exist
-      final existingUser = await _userService.getUser(user.uid);
-      if (existingUser != null) {
-        print('Updating existing user');
-        await _userService.updateUser(userModel);
-      } else {
-        print('Creating new user');
-        await _userService.createUser(userModel);
-      }
-      print('User successfully created/updated in Firestore');
-    } catch (e) {
-      print('Error creating/updating user in Firestore: $e');
-      rethrow;
+    // First try to get the user to check if they exist
+    final existingUser = await _userService.getUser(user.uid);
+    if (existingUser != null) {
+      await _userService.updateUser(userModel);
+    } else {
+      await _userService.createUser(userModel);
     }
   }
 
   // Sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(
       String email, String password) async {
-    try {
-      print('Signing in with email: $email');
-      final UserCredential userCredential =
-          await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      await _prefs.setBool('isLoggedIn', true);
-      print('Successfully signed in: ${userCredential.user?.uid}');
-      return userCredential;
-    } catch (e) {
-      print('Error signing in: $e');
-      rethrow;
-    }
+    final UserCredential userCredential =
+        await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    await _prefs.setBool('isLoggedIn', true);
+    return userCredential;
   }
 
   // Register with email and password
   Future<UserCredential> registerWithEmailAndPassword(
       String email, String password, String displayName) async {
-    try {
-      print('Registering new user: $email');
-      final UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    final UserCredential userCredential =
+        await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      print('User created in Firebase Auth: ${userCredential.user?.uid}');
+    // Update user profile with display name
+    await userCredential.user?.updateDisplayName(displayName);
 
-      // Update user profile with display name
-      await userCredential.user?.updateDisplayName(displayName);
-      print('Updated user display name');
+    // Create user in Firestore
+    await _createOrUpdateUser(userCredential.user!, displayName: displayName);
 
-      // Create user in Firestore
-      await _createOrUpdateUser(userCredential.user!, displayName: displayName);
-
-      await _prefs.setBool('isLoggedIn', true);
-      print('Registration completed successfully');
-      return userCredential;
-    } catch (e) {
-      print('Error during registration: $e');
-      rethrow;
-    }
+    await _prefs.setBool('isLoggedIn', true);
+    return userCredential;
   }
 
   // Sign in with Google
   Future<UserCredential> signInWithGoogle() async {
-    try {
-      print('Starting Google sign in');
-      // Trigger the authentication flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) throw Exception('Google sign in aborted');
-      print('Google user obtained: ${googleUser.email}');
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw Exception('Google sign in aborted');
 
-      // Get the user's Google profile data
-      final googleAuth = await googleUser.authentication;
-      print('Google authentication successful');
+    // Get the user's Google profile data
+    final googleAuth = await googleUser.authentication;
 
-      // Create a new credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      print('Google credential created: $credential');
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
 
-      // Sign in to Firebase with the Google credential
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-      print('Firebase authentication successful: ${userCredential}');
+    // Sign in to Firebase with the Google credential
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(credential);
 
-      // Update Firebase user profile with Google data
-      if (userCredential.user != null) {
-        await userCredential.user?.updateDisplayName(googleUser.displayName);
-        await userCredential.user?.updatePhotoURL(googleUser.photoUrl);
-        print('Updated Firebase user profile with Google data');
-      }
-
-      // Create or update user in Firestore with Google data
-      await _createOrUpdateUser(
-        userCredential.user!,
-        displayName: googleUser.displayName,
-      );
-
-      await _prefs.setBool('isLoggedIn', true);
-      print('Google sign in completed successfully');
-      return userCredential;
-    } catch (e) {
-      print('Error during Google sign in: $e');
-      rethrow;
+    // Update Firebase user profile with Google data
+    if (userCredential.user != null) {
+      await userCredential.user?.updateDisplayName(googleUser.displayName);
+      await userCredential.user?.updatePhotoURL(googleUser.photoUrl);
     }
+
+    // Create or update user in Firestore with Google data
+    await _createOrUpdateUser(
+      userCredential.user!,
+      displayName: googleUser.displayName,
+    );
+
+    await _prefs.setBool('isLoggedIn', true);
+    return userCredential;
   }
 
   // Sign out
   Future<void> signOut() async {
-    try {
-      print('Signing out');
-      await _googleSignIn.signOut();
-      await _auth.signOut();
-      await _prefs.setBool('isLoggedIn', false);
-      print('Sign out completed');
-    } catch (e) {
-      print('Error during sign out: $e');
-      rethrow;
-    }
+    await _googleSignIn.signOut();
+    await _auth.signOut();
+    await _prefs.setBool('isLoggedIn', false);
   }
 
   // Check if user is logged in
