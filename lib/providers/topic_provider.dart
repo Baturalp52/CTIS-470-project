@@ -24,13 +24,7 @@ class TopicProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final userId = _authService.currentUser?.uid;
-      if (userId == null) {
-        _error = 'User not authenticated';
-        return;
-      }
-
-      _topics = await _topicService.streamTopics(createdBy: userId).first;
+      _topics = await _topicService.streamTopics().first;
       _error = null;
     } catch (e) {
       _error = 'Failed to load topics: $e';

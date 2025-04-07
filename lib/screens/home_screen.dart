@@ -105,8 +105,17 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           if (topicProvider.topics.isEmpty) {
-            return const Center(
-              child: Text('No topics found. Create your first topic!'),
+            return RefreshIndicator(
+              onRefresh: _refreshTopics,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.8,
+                  child: const Center(
+                    child: Text('No topics found.'),
+                  ),
+                ),
+              ),
             );
           }
 
