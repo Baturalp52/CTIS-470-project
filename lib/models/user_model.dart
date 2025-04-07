@@ -6,9 +6,6 @@ class UserModel extends BaseModel {
   String? displayName;
   String? photoURL;
   String? bio;
-  List<String>? favoriteTopics;
-  List<String>? likedEntries;
-  List<String>? dislikedEntries;
 
   UserModel({
     String? id,
@@ -16,9 +13,6 @@ class UserModel extends BaseModel {
     this.displayName,
     this.photoURL,
     this.bio,
-    this.favoriteTopics,
-    this.likedEntries,
-    this.dislikedEntries,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super(
@@ -34,9 +28,6 @@ class UserModel extends BaseModel {
       displayName: map['displayName'],
       photoURL: map['photoURL'],
       bio: map['bio'],
-      favoriteTopics: List<String>.from(map['favoriteTopics'] ?? []),
-      likedEntries: List<String>.from(map['likedEntries'] ?? []),
-      dislikedEntries: List<String>.from(map['dislikedEntries'] ?? []),
       createdAt: BaseModel.fromTimestamp(map['createdAt']),
       updatedAt: BaseModel.fromTimestamp(map['updatedAt']),
     );
@@ -50,9 +41,6 @@ class UserModel extends BaseModel {
       'displayName': displayName,
       'photoURL': photoURL,
       'bio': bio,
-      'favoriteTopics': favoriteTopics,
-      'likedEntries': likedEntries,
-      'dislikedEntries': dislikedEntries,
       'createdAt': BaseModel.toTimestamp(createdAt),
       'updatedAt': BaseModel.toTimestamp(updatedAt),
     };

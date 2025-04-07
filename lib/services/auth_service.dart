@@ -32,9 +32,8 @@ class AuthService {
 
     // First try to get the user to check if they exist
     final existingUser = await _userService.getUser(user.uid);
-    if (existingUser != null) {
-      await _userService.updateUser(userModel);
-    } else {
+    if (existingUser == null) {
+      // Only create user if they don't exist
       await _userService.createUser(userModel);
     }
   }
