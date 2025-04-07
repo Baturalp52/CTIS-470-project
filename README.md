@@ -6,8 +6,11 @@ A Flutter application for managing and browsing dictionary entries for CTIS (Com
 
 - Browse and search through various CTIS topics
 - Create new topics and entries
+- User authentication with Google Sign-In
 - Profile settings with dark mode support
 - Modern and responsive UI
+- Real-time data synchronization with Firebase
+- Offline data persistence
 
 ## Prerequisites
 
@@ -17,6 +20,7 @@ Before you begin, ensure you have the following installed:
 - [Dart SDK](https://dart.dev/get-dart)
 - [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com/) with Flutter extensions
 - An Android emulator or physical device for testing
+- Firebase account and project setup
 
 ## Getting Started
 
@@ -46,13 +50,18 @@ lib/
 ├── main.dart              # Application entry point
 ├── models/               # Data models
 ├── providers/            # State management providers
-│   └── theme_provider.dart
+│   ├── theme_provider.dart
+│   └── auth_provider.dart
 ├── screens/              # Application screens
 │   ├── home_screen.dart
 │   ├── profile_screen.dart
 │   ├── topic_create_screen.dart
 │   └── topic_entries_screen.dart
-└── widgets/              # Reusable widgets
+├── services/            # Firebase and other services
+│   ├── auth_service.dart
+│   └── firestore_service.dart
+├── utils/              # Utility functions and constants
+└── widgets/            # Reusable widgets
     └── topic_card.dart
 ```
 
@@ -61,16 +70,28 @@ lib/
 The project uses the following main dependencies:
 
 - `provider: ^6.1.1` - For state management
+- `firebase_core: ^3.13.0` - Firebase core functionality
+- `firebase_auth: ^5.5.2` - Firebase authentication
+- `cloud_firestore: ^5.6.6` - Firebase Cloud Firestore
+- `shared_preferences: ^2.2.2` - Local storage
+- `google_sign_in: ^6.1.6` - Google Sign-In integration
 - `flutter/material.dart` - For UI components
 - `cupertino_icons: ^1.0.2` - For iOS-style icons
 
 ## Features in Detail
+
+### Authentication
+
+- Google Sign-In integration
+- User profile management
+- Secure authentication flow
 
 ### Home Screen
 
 - Displays a list of CTIS topics
 - Add new topics using the floating action button
 - Access profile settings via the profile icon in the app bar
+- Real-time updates of topics
 
 ### Profile Screen
 
@@ -84,6 +105,7 @@ The project uses the following main dependencies:
 - Create new topics
 - View topic entries
 - Update topic information
+- Real-time synchronization with Firebase
 
 ## Theme Support
 
@@ -92,6 +114,7 @@ The application supports both light and dark themes:
 - Light theme: Default theme with a red accent color (0xFF8E272A)
 - Dark theme: Dark variant of the same color scheme
 - Theme can be toggled from the profile screen
+- Theme preference is persisted using SharedPreferences
 
 ## Contributing
 
