@@ -46,7 +46,7 @@ class ProfileHeader extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'CTIS Dictionary User',
+            userData.bio ?? '',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).textTheme.bodySmall?.color,

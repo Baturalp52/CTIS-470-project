@@ -24,7 +24,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final userData = authProvider.userData;
     _nameController = TextEditingController(text: userData?.displayName ?? '');
     _emailController = TextEditingController(text: userData?.email ?? '');
-    _bioController = TextEditingController(text: 'CTIS Dictionary User');
+    _bioController = TextEditingController(text: userData?.bio ?? '');
     _profileImageUrl = userData?.photoURL;
   }
 
@@ -47,6 +47,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await authProvider.updateUserProfile(
           displayName: _nameController.text,
           photoURL: _profileImageUrl,
+          bio: _bioController.text,
         );
         if (mounted) {
           Navigator.pop(context);

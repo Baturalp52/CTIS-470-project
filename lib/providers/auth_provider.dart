@@ -115,6 +115,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> updateUserProfile({
     String? displayName,
     String? photoURL,
+    String? bio,
   }) async {
     try {
       _isLoading = true;
@@ -133,6 +134,7 @@ class AuthProvider with ChangeNotifier {
       if (_userData != null) {
         _userData!.displayName = displayName;
         _userData!.photoURL = photoURL;
+        _userData!.bio = bio;
         await _userService.updateUser(_userData!);
       }
 
