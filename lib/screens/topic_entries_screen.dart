@@ -157,8 +157,9 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
   Widget build(BuildContext context) {
     final topicProvider = Provider.of<TopicProvider>(context);
     final entryService = Provider.of<EntryService>(context);
-    final canEdit =
-        topicProvider.topics.where((t) => t.id == _currentTopic.id).isNotEmpty;
+    final authProvider = Provider.of<AuthProvider>(context);
+    final currentUserId = authProvider.user?.uid;
+    final canEdit = currentUserId == _currentTopic.createdBy;
 
     return Scaffold(
       appBar: AppBar(
@@ -225,12 +226,34 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
             children: [
               RefreshIndicator(
                 onRefresh: _refreshEntries,
-                child: ListView.builder(
-                  itemCount: entries.length,
-                  itemBuilder: (context, index) {
-                    return EntryCard(entry: entries[index]);
-                  },
-                ),
+                child: entries.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'No entries found',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed:
+                                  _isDeleting ? null : _navigateToCreateEntry,
+                              icon: const Icon(Icons.add),
+                              label: const Text('Add Entry'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: entries.length,
+                        itemBuilder: (context, index) {
+                          return EntryCard(entry: entries[index]);
+                        },
+                      ),
               ),
               if (_isDeleting)
                 Container(
