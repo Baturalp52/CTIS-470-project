@@ -13,12 +13,15 @@ import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/topic_service.dart';
 import 'services/entry_service.dart';
+import "firebase_options.dart";
 
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     final prefs = await SharedPreferences.getInstance();
 

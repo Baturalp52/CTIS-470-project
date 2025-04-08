@@ -1,4 +1,5 @@
 import 'base_model.dart';
+import 'user_model.dart';
 
 class EntryModel extends BaseModel {
   String content;
@@ -6,6 +7,7 @@ class EntryModel extends BaseModel {
   String createdBy;
   List<String> likedBy;
   List<String> dislikedBy;
+  UserModel? creator;
 
   EntryModel({
     String? id,

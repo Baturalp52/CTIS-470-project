@@ -182,8 +182,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     final Map<TopicModel, List<EntryModel>>
                                         updatedEntriesByTopic = {};
 
+                                    // Set creator for all entries
+                                    final updatedEntries = entries.map((entry) {
+                                      entry.creator = _currentUserData;
+                                      return entry;
+                                    }).toList();
+
                                     for (final topic in topics) {
-                                      final topicEntries = entries
+                                      final topicEntries = updatedEntries
                                           .where((entry) =>
                                               entry.topicId == topic.id)
                                           .toList();

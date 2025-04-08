@@ -29,8 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reload topics when returning to this screen
-    Provider.of<TopicProvider>(context, listen: false).loadTopics();
+    // Only load topics if we're not in the build phase
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TopicProvider>(context, listen: false).loadTopics();
+    });
   }
 
   void _navigateToCreateScreen() {
@@ -134,10 +137,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (context) => TopicEntriesScreen(topic: topic),
                       ),
                     );
-                    if (result == true) {
+                    if (result == true && mounted) {
                       // Reload topics when returning from entries screen
-                      Provider.of<TopicProvider>(context, listen: false)
-                          .loadTopics();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Provider.of<TopicProvider>(context, listen: false)
+                            .loadTopics();
+                      });
                     }
                   },
                   onEdit: () => _navigateToEditScreen(topic),

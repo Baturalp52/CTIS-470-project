@@ -2,12 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/entry_model.dart';
-import '../models/user_model.dart';
 import '../utils/time_formatter.dart';
 import '../screens/user_profile_screen.dart';
 import '../screens/entry_create_screen.dart';
 import '../providers/auth_provider.dart';
-import '../services/user_service.dart';
 import '../services/entry_service.dart';
 
 class EntryCard extends StatefulWidget {
@@ -24,15 +22,12 @@ class EntryCard extends StatefulWidget {
 
 class _EntryCardState extends State<EntryCard> {
   Timer? _timer;
-  UserModel? _creator;
   bool _isDeleting = false;
-  final UserService _userService = UserService();
 
   @override
   void initState() {
     super.initState();
     _startTimer();
-    _loadCreatorData();
   }
 
   @override
@@ -49,19 +44,6 @@ class _EntryCardState extends State<EntryCard> {
         });
       }
     });
-  }
-
-  Future<void> _loadCreatorData() async {
-    try {
-      final creator = await _userService.getUser(widget.entry.createdBy);
-      if (mounted) {
-        setState(() {
-          _creator = creator;
-        });
-      }
-    } catch (e) {
-      // Handle error silently
-    }
   }
 
   Future<void> _handleLike() async {
@@ -176,13 +158,13 @@ class _EntryCardState extends State<EntryCard> {
   }
 
   void _navigateToUserProfile() {
-    if (_creator == null) return;
+    if (widget.entry.creator == null) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => UserProfileScreen(
-          userData: _creator!,
+          userData: widget.entry.creator!,
           isCurrentUser: false,
         ),
       ),
@@ -248,7 +230,7 @@ class _EntryCardState extends State<EntryCard> {
                       InkWell(
                         onTap: _navigateToUserProfile,
                         child: Text(
-                          'by ${_creator?.displayName ?? entry.createdBy}',
+                          'by ${widget.entry.creator?.displayName ?? entry.createdBy}',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontStyle: FontStyle.italic,
