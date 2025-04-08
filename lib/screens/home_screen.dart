@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/topic_model.dart';
 import '../providers/topic_provider.dart';
 import '../widgets/topic_card.dart';
 import 'topic_create_screen.dart';
@@ -31,26 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (context) => const TopicCreateScreen()),
     );
-  }
-
-  void _navigateToEditScreen(TopicModel topic) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TopicCreateScreen(topic: topic),
-      ),
-    );
-  }
-
-  Future<void> _deleteTopic(TopicModel topic) async {
-    final topicProvider = Provider.of<TopicProvider>(context, listen: false);
-    final success = await topicProvider.deleteTopic(topic.id!);
-    if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(topicProvider.error ?? 'Failed to delete topic')),
-      );
-    }
   }
 
   Future<void> _refreshTopics() async {
@@ -133,8 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       await _refreshTopics();
                     }
                   },
-                  onEdit: () => _navigateToEditScreen(topic),
-                  onDelete: () => _deleteTopic(topic),
                 );
               },
             ),

@@ -43,40 +43,6 @@ class TopicCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (onEdit != null || onDelete != null)
-                      PopupMenuButton<String>(
-                        itemBuilder: (context) => [
-                          if (onEdit != null)
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Edit'),
-                                ],
-                              ),
-                            ),
-                          if (onDelete != null)
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Delete'),
-                                ],
-                              ),
-                            ),
-                        ],
-                        onSelected: (value) {
-                          if (value == 'edit' && onEdit != null) {
-                            onEdit!();
-                          } else if (value == 'delete' && onDelete != null) {
-                            onDelete!();
-                          }
-                        },
-                      ),
                   ],
                 ),
                 const SizedBox(height: 8),

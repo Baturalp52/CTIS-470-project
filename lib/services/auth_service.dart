@@ -77,42 +77,37 @@ class AuthService {
 
   // Sign in with Google
   Future<UserCredential> signInWithGoogle() async {
-    try {
-      // Trigger the authentication flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) throw Exception('Google sign in aborted');
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw Exception('Google sign in aborted');
 
-      // Get the user's Google profile data
-      final googleAuth = await googleUser.authentication;
+    // Get the user's Google profile data
+    final googleAuth = await googleUser.authentication;
 
-      // Create a new credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
 
-      // Sign in to Firebase with the Google credential
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+    // Sign in to Firebase with the Google credential
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(credential);
 
-      // Update Firebase user profile with Google data
-      if (userCredential.user != null) {
-        await userCredential.user?.updateDisplayName(googleUser.displayName);
-        await userCredential.user?.updatePhotoURL(googleUser.photoUrl);
-      }
-
-      // Create or update user in Firestore with Google data
-      await _createOrUpdateUser(
-        userCredential.user!,
-        displayName: googleUser.displayName,
-      );
-
-      await _prefs.setBool('isLoggedIn', true);
-      return userCredential;
-    } catch (e) {
-      print('Error during Google Sign In: $e');
-      rethrow;
+    // Update Firebase user profile with Google data
+    if (userCredential.user != null) {
+      await userCredential.user?.updateDisplayName(googleUser.displayName);
+      await userCredential.user?.updatePhotoURL(googleUser.photoUrl);
     }
+
+    // Create or update user in Firestore with Google data
+    await _createOrUpdateUser(
+      userCredential.user!,
+      displayName: googleUser.displayName,
+    );
+
+    await _prefs.setBool('isLoggedIn', true);
+    return userCredential;
   }
 
   // Sign out
