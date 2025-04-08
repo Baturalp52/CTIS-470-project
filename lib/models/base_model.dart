@@ -23,9 +23,7 @@ abstract class BaseModel {
 
   void updateTimestamps() {
     final now = DateTime.now();
-    if (createdAt == null) {
-      createdAt = now;
-    }
+    createdAt ??= now;
     updatedAt = now;
   }
 }

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_model.dart';
 
 class UserModel extends BaseModel {
@@ -8,18 +7,14 @@ class UserModel extends BaseModel {
   String? bio;
 
   UserModel({
-    String? id,
+    super.id,
     this.email,
     this.displayName,
     this.photoURL,
     this.bio,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(
-          id: id,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
+    super.createdAt,
+    super.updatedAt,
+  }) : super();
 
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
     return UserModel(

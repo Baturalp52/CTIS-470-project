@@ -6,17 +6,13 @@ class TopicModel extends BaseModel {
   String createdBy;
 
   TopicModel({
-    String? id,
+    super.id,
     required this.title,
     required this.description,
     required this.createdBy,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(
-          id: id,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
+    super.createdAt,
+    super.updatedAt,
+  }) : super();
 
   factory TopicModel.fromMap(Map<String, dynamic> map, String id) {
     return TopicModel(

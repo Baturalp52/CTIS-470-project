@@ -162,7 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha(77),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),

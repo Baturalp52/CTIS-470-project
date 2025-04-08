@@ -10,19 +10,15 @@ class EntryModel extends BaseModel {
   UserModel? creator;
 
   EntryModel({
-    String? id,
+    super.id,
     required this.content,
     required this.topicId,
     required this.createdBy,
     this.likedBy = const [],
     this.dislikedBy = const [],
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(
-          id: id,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
+    super.createdAt,
+    super.updatedAt,
+  }) : super();
 
   factory EntryModel.fromMap(Map<String, dynamic> map, String id) {
     return EntryModel(

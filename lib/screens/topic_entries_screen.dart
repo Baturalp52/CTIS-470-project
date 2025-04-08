@@ -5,7 +5,6 @@ import '../models/entry_model.dart';
 import '../models/user_model.dart';
 import '../providers/topic_provider.dart';
 import '../providers/auth_provider.dart';
-import '../providers/user_provider.dart';
 import '../services/entry_service.dart';
 import '../services/user_service.dart';
 import '../widgets/entry_card.dart';
@@ -32,26 +31,26 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
   }
 
   void _navigateToCreateEntry() async {
+    final entryService = Provider.of<EntryService>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserId = authProvider.user?.uid;
+
+    if (currentUserId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('You must be logged in to create an entry')),
+        );
+      }
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const EntryCreateScreen()),
     );
 
-    if (result != null) {
-      final entryService = Provider.of<EntryService>(context, listen: false);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final currentUserId = authProvider.user?.uid;
-
-      if (currentUserId == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('You must be logged in to create an entry')),
-          );
-        }
-        return;
-      }
-
+    if (result != null && mounted) {
       try {
         final entry = EntryModel(
           content: result['content'],
@@ -160,7 +159,6 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topicProvider = Provider.of<TopicProvider>(context);
     final entryService = Provider.of<EntryService>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUserId = authProvider.user?.uid;
@@ -293,7 +291,7 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
                   ),
                   if (_isDeleting)
                     Container(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withAlpha(77),
                       child: const Center(
                         child: CircularProgressIndicator(),
                       ),

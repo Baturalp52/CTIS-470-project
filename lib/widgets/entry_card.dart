@@ -89,6 +89,8 @@ class _EntryCardState extends State<EntryCard> {
   }
 
   Future<void> _handleEdit() async {
+    final entryService = Provider.of<EntryService>(context, listen: false);
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -96,8 +98,7 @@ class _EntryCardState extends State<EntryCard> {
       ),
     );
 
-    if (result != null && result['isEdit'] == true) {
-      final entryService = Provider.of<EntryService>(context, listen: false);
+    if (result != null && result['isEdit'] == true && mounted) {
       try {
         final updatedEntry = EntryModel(
           id: result['entryId'],
@@ -119,6 +120,8 @@ class _EntryCardState extends State<EntryCard> {
   }
 
   Future<void> _handleDelete() async {
+    final entryService = Provider.of<EntryService>(context, listen: false);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -138,9 +141,8 @@ class _EntryCardState extends State<EntryCard> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       setState(() => _isDeleting = true);
-      final entryService = Provider.of<EntryService>(context, listen: false);
       try {
         await entryService.delete(EntryService.collection, widget.entry.id!);
       } catch (e) {
