@@ -24,7 +24,7 @@ class TopicProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _topics = await _topicService.streamTopics().first;
+      _topics = await _topicService.getTopics();
       _error = null;
     } catch (e) {
       _error = 'Failed to load topics: $e';

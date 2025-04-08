@@ -38,6 +38,15 @@ class TopicService extends FirestoreService {
     );
   }
 
+  Future<List<TopicModel>> getTopics() async {
+    final query =
+        firestore.collection(collection).orderBy('createdAt', descending: true);
+    final snapshot = await query.get();
+    return snapshot.docs
+        .map((doc) => TopicModel.fromMap(doc.data(), doc.id))
+        .toList();
+  }
+
   Future<int> getEntryCount(String topicId) async {
     final entries = await _entryService.streamEntries(topicId: topicId).first;
     return entries.length;

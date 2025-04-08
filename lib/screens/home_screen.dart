@@ -26,16 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Only load topics if we're not in the build phase
-    if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TopicProvider>(context, listen: false).loadTopics();
-    });
-  }
-
   void _navigateToCreateScreen() {
     Navigator.push(
       context,
@@ -64,7 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshTopics() async {
-    await Provider.of<TopicProvider>(context, listen: false).loadTopics();
+    final topicProvider = Provider.of<TopicProvider>(context, listen: false);
+    await topicProvider.loadTopics();
   }
 
   @override
@@ -99,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(topicProvider.error!),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => topicProvider.loadTopics(),
+                    onPressed: _refreshTopics,
                     child: const Text('Retry'),
                   ),
                 ],
@@ -139,10 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                     if (result == true && mounted) {
                       // Reload topics when returning from entries screen
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Provider.of<TopicProvider>(context, listen: false)
-                            .loadTopics();
-                      });
+                      await _refreshTopics();
                     }
                   },
                   onEdit: () => _navigateToEditScreen(topic),
