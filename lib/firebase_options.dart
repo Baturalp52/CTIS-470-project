@@ -63,7 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1034228384766',
     projectId: 'ctis470-project',
     storageBucket: 'ctis470-project.firebasestorage.app',
-    iosClientId: '1034228384766-ocuu6nsnf44ilj0mo4ml5t7rpna69mkf.apps.googleusercontent.com',
+    iosClientId:
+        '1034228384766-ocuu6nsnf44ilj0mo4ml5t7rpna69mkf.apps.googleusercontent.com',
     iosBundleId: 'com.example.ctisDictionary',
   );
 
@@ -73,7 +74,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1034228384766',
     projectId: 'ctis470-project',
     storageBucket: 'ctis470-project.firebasestorage.app',
-    iosClientId: '1034228384766-ocuu6nsnf44ilj0mo4ml5t7rpna69mkf.apps.googleusercontent.com',
+    iosClientId:
+        '1034228384766-ocuu6nsnf44ilj0mo4ml5t7rpna69mkf.apps.googleusercontent.com',
     iosBundleId: 'com.example.ctisDictionary',
   );
 

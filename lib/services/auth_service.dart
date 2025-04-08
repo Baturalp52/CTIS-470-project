@@ -1,12 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    // Add your web client ID here
+    clientId: kIsWeb
+        ? '1034228384766-3ual1p1hijsn6umbopr5d3cbqvmnp3r1.apps.googleusercontent.com'
+        : null,
+  );
   final SharedPreferences _prefs;
   final UserService _userService;
 
@@ -71,37 +77,42 @@ class AuthService {
 
   // Sign in with Google
   Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) throw Exception('Google sign in aborted');
+    try {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) throw Exception('Google sign in aborted');
 
-    // Get the user's Google profile data
-    final googleAuth = await googleUser.authentication;
+      // Get the user's Google profile data
+      final googleAuth = await googleUser.authentication;
 
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-    // Sign in to Firebase with the Google credential
-    final UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
+      // Sign in to Firebase with the Google credential
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
 
-    // Update Firebase user profile with Google data
-    if (userCredential.user != null) {
-      await userCredential.user?.updateDisplayName(googleUser.displayName);
-      await userCredential.user?.updatePhotoURL(googleUser.photoUrl);
+      // Update Firebase user profile with Google data
+      if (userCredential.user != null) {
+        await userCredential.user?.updateDisplayName(googleUser.displayName);
+        await userCredential.user?.updatePhotoURL(googleUser.photoUrl);
+      }
+
+      // Create or update user in Firestore with Google data
+      await _createOrUpdateUser(
+        userCredential.user!,
+        displayName: googleUser.displayName,
+      );
+
+      await _prefs.setBool('isLoggedIn', true);
+      return userCredential;
+    } catch (e) {
+      print('Error during Google Sign In: $e');
+      rethrow;
     }
-
-    // Create or update user in Firestore with Google data
-    await _createOrUpdateUser(
-      userCredential.user!,
-      displayName: googleUser.displayName,
-    );
-
-    await _prefs.setBool('isLoggedIn', true);
-    return userCredential;
   }
 
   // Sign out
