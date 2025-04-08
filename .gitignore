@@ -11,6 +11,9 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+generated_plugins.*
+generated_plugin_registrant.*
+GeneratedPluginRegistrant.*
 
 # IntelliJ related
 *.iml
