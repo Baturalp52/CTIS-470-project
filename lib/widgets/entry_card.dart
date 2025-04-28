@@ -188,7 +188,7 @@ class _EntryCardState extends State<EntryCard> {
         final isDisliked =
             currentUserId != null && entry.isDislikedBy(currentUserId);
 
-        return Column(
+        final content = Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -202,27 +202,6 @@ class _EntryCardState extends State<EntryCard> {
                         child: Text(entry.content,
                             style: const TextStyle(fontSize: 16)),
                       ),
-                      if (isOwner && !_isDeleting)
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit,
-                                  size: 20,
-                                  color: Theme.of(context).primaryColor),
-                              onPressed: _handleEdit,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete,
-                                  size: 20,
-                                  color: Theme.of(context).colorScheme.error),
-                              onPressed: _handleDelete,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -285,6 +264,39 @@ class _EntryCardState extends State<EntryCard> {
             ),
             const Divider(height: 1),
           ],
+        );
+
+        if (!isOwner) {
+          return content;
+        }
+
+        return Dismissible(
+          key: Key(entry.id ?? entry.hashCode.toString()),
+          direction: DismissDirection.horizontal,
+          background: Container(
+            color: Colors.yellow,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const Icon(Icons.edit, color: Colors.black),
+          ),
+          secondaryBackground: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.startToEnd) {
+              // Swipe right - Edit
+              await _handleEdit();
+              return false; // Prevent dismissal
+            } else {
+              // Swipe left - Delete
+              await _handleDelete();
+              return false; // Prevent dismissal
+            }
+          },
+          child: content,
         );
       },
     );
