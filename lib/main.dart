@@ -9,6 +9,7 @@ import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/topic_provider.dart';
+import 'providers/entry_provider.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/topic_service.dart';
@@ -47,6 +48,11 @@ void main() async {
             ),
             update: (context, authService, topicService, previous) =>
                 previous ?? TopicProvider(topicService, authService),
+          ),
+          ChangeNotifierProxyProvider<EntryService, EntryProvider>(
+            create: (context) => EntryProvider(context.read<EntryService>()),
+            update: (context, entryService, previous) =>
+                previous ?? EntryProvider(entryService),
           ),
         ],
         child: const MyApp(),

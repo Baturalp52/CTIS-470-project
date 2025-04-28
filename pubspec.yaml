@@ -42,6 +42,7 @@ dependencies:
   google_sign_in: ^6.1.6
   google_sign_in_android: ^6.1.6
   google_sign_in_platform_interface: ^2.3.2
+  insta_image_viewer: ^1.0.4
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +54,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -68,6 +70,13 @@ flutter:
   assets:
     - assets/google_logo.png
     - assets/ctis_logo.png
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
