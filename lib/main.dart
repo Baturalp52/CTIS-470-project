@@ -10,6 +10,7 @@ import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/topic_provider.dart';
 import 'providers/entry_provider.dart';
+import 'providers/draft_entry_provider.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/topic_service.dart';
@@ -35,6 +36,7 @@ void main() async {
           Provider(create: (_) => UserService()),
           Provider(create: (_) => TopicService()),
           Provider(create: (_) => EntryService()),
+          ChangeNotifierProvider(create: (_) => DraftEntryProvider()),
           ChangeNotifierProxyProvider<AuthService, AuthProvider>(
             create: (context) => AuthProvider(context.read<AuthService>()),
             update: (context, authService, previous) =>
