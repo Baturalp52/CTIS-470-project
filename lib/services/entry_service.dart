@@ -18,6 +18,15 @@ class EntryService extends FirestoreService {
     return get(collection, entryId, EntryModel.fromMap);
   }
 
+  Stream<EntryModel?> streamEntry(String entryId) {
+    return firestore.collection(collection).doc(entryId).snapshots().map((doc) {
+      if (!doc.exists) {
+        return null;
+      }
+      return EntryModel.fromMap(doc.data()!, doc.id);
+    });
+  }
+
   Stream<List<EntryModel>> streamEntries({
     String? topicId,
     String? createdBy,

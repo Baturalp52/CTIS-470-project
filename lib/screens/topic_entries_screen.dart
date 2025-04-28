@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/topic_model.dart';
 import '../models/entry_model.dart';
-import '../models/user_model.dart';
 import '../providers/topic_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
-import '../services/user_service.dart';
 import '../widgets/entry_card.dart';
 import 'entry_create_screen.dart';
 import 'topic_create_screen.dart';
@@ -28,6 +27,10 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
   void initState() {
     super.initState();
     _currentTopic = widget.topic;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<EntryProvider>(context, listen: false)
+          .loadEntries(_currentTopic.id!);
+    });
   }
 
   void _navigateToCreateEntry() async {
@@ -58,6 +61,11 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
           createdBy: currentUserId,
         );
         await entryService.createEntry(entry);
+        // Refresh entries after creating
+        if (mounted) {
+          await Provider.of<EntryProvider>(context, listen: false)
+              .refreshEntries(_currentTopic.id!);
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,14 +160,9 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
     }
   }
 
-  Future<void> _refreshEntries() async {
-    final entryService = Provider.of<EntryService>(context, listen: false);
-    await entryService.streamEntries(topicId: _currentTopic.id).first;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final entryService = Provider.of<EntryService>(context);
+    final entryProvider = Provider.of<EntryProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUserId = authProvider.user?.uid;
     final canEdit = currentUserId == _currentTopic.createdBy;
@@ -175,18 +178,12 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_currentTopic.title),
-            StreamBuilder<List<EntryModel>>(
-              stream: entryService.streamEntries(topicId: _currentTopic.id),
-              builder: (context, snapshot) {
-                final count = snapshot.data?.length ?? 0;
-                return Text(
-                  '$count entries',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
-                );
-              },
+            Text(
+              '${entryProvider.entries.length} entries',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
             ),
           ],
         ),
@@ -212,96 +209,55 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
           ],
         ],
       ),
-      body: StreamBuilder<List<EntryModel>>(
-        stream: entryService.streamEntries(topicId: _currentTopic.id),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final entries = snapshot.data!;
-
-          // Get unique creator IDs
-          final Set<String> creatorIds =
-              entries.map((entry) => entry.createdBy).toSet();
-
-          final userService = Provider.of<UserService>(context, listen: false);
-
-          return FutureBuilder<List<UserModel?>>(
-            future: Future.wait(
-              creatorIds.map((id) => userService.getUser(id)),
-            ),
-            builder: (context, creatorSnapshot) {
-              if (creatorSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (creatorSnapshot.hasError) {
-                return Center(child: Text('Error: ${creatorSnapshot.error}'));
-              }
-
-              final creators = creatorSnapshot.data!;
-              final Map<String, UserModel> creatorMap = {
-                for (var creator in creators)
-                  if (creator != null) creator.id!: creator
-              };
-
-              // Set creators to entries
-              for (final entry in entries) {
-                entry.creator = creatorMap[entry.createdBy];
-              }
-
-              return Stack(
-                children: [
-                  RefreshIndicator(
-                    onRefresh: _refreshEntries,
-                    child: entries.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'No entries found',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+      body: entryProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : entryProvider.error != null
+              ? Center(child: Text(entryProvider.error!))
+              : Stack(
+                  children: [
+                    RefreshIndicator(
+                      onRefresh: () =>
+                          entryProvider.refreshEntries(_currentTopic.id!),
+                      child: entryProvider.entries.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'No entries found',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: _isDeleting
-                                      ? null
-                                      : _navigateToCreateEntry,
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Add Entry'),
-                                ),
-                              ],
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: _isDeleting
+                                        ? null
+                                        : _navigateToCreateEntry,
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Add Entry'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: entryProvider.entries.length,
+                              itemBuilder: (context, index) {
+                                return EntryCard(
+                                    entry: entryProvider.entries[index]);
+                              },
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: entries.length,
-                            itemBuilder: (context, index) {
-                              return EntryCard(entry: entries[index]);
-                            },
-                          ),
-                  ),
-                  if (_isDeleting)
-                    Container(
-                      color: Colors.black.withAlpha(77),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
                     ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                    if (_isDeleting)
+                      Container(
+                        color: Colors.black.withAlpha(77),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                  ],
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: _isDeleting ? null : _navigateToCreateEntry,
         child: const Icon(Icons.add),
