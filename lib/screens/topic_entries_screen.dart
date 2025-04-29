@@ -9,6 +9,7 @@ import '../services/entry_service.dart';
 import '../widgets/entry_card.dart';
 import 'entry_create_screen.dart';
 import 'topic_create_screen.dart';
+import 'dart:convert';
 
 class TopicEntriesScreen extends StatefulWidget {
   final TopicModel topic;
@@ -222,36 +223,65 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
                     RefreshIndicator(
                       onRefresh: () =>
                           entryProvider.refreshEntries(_currentTopic.id!),
-                      child: entryProvider.entries.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'No entries found',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                      child: CustomScrollView(
+                        slivers: [
+                          if (_currentTopic.imageBase64 != null)
+                            SliverToBoxAdapter(
+                              child: Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    base64Decode(_currentTopic.imageBase64!),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
                                   ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: _isDeleting
-                                        ? null
-                                        : _navigateToCreateEntry,
-                                    icon: const Icon(Icons.add),
-                                    label: const Text('Add Entry'),
-                                  ),
-                                ],
+                                ),
                               ),
-                            )
-                          : ListView.builder(
-                              itemCount: entryProvider.entries.length,
-                              itemBuilder: (context, index) {
-                                return EntryCard(
-                                    entry: entryProvider.entries[index]);
-                              },
                             ),
+                          SliverToBoxAdapter(
+                            child: entryProvider.entries.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          'No entries found',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton.icon(
+                                          onPressed: _isDeleting
+                                              ? null
+                                              : _navigateToCreateEntry,
+                                          icon: const Icon(Icons.add),
+                                          label: const Text('Add Entry'),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: entryProvider.entries.length,
+                                    itemBuilder: (context, index) {
+                                      return EntryCard(
+                                          entry: entryProvider.entries[index]);
+                                    },
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
                     if (_isDeleting)
                       Container(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import '../models/topic_model.dart';
 import '../providers/topic_provider.dart';
 
@@ -16,6 +18,8 @@ class _TopicCreateScreenState extends State<TopicCreateScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
+  String? _imageBase64;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -23,6 +27,7 @@ class _TopicCreateScreenState extends State<TopicCreateScreen> {
     _titleController = TextEditingController(text: widget.topic?.title);
     _descriptionController =
         TextEditingController(text: widget.topic?.description);
+    _imageBase64 = widget.topic?.imageBase64;
   }
 
   @override
@@ -30,6 +35,33 @@ class _TopicCreateScreenState extends State<TopicCreateScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+      if (image != null) {
+        setState(() {
+          _isLoading = true;
+        });
+
+        final bytes = await image.readAsBytes();
+        final base64String = base64Encode(bytes);
+
+        setState(() {
+          _imageBase64 = base64String;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _submitForm() async {
@@ -44,6 +76,7 @@ class _TopicCreateScreenState extends State<TopicCreateScreen> {
           widget.topic!,
           title,
           description,
+          imageBase64: _imageBase64,
         );
         if (success) {
           if (mounted) {
@@ -60,7 +93,11 @@ class _TopicCreateScreenState extends State<TopicCreateScreen> {
         }
       } else {
         // Create new topic
-        final success = await topicProvider.createTopic(title, description);
+        final success = await topicProvider.createTopic(
+          title,
+          description,
+          imageBase64: _imageBase64,
+        );
         if (success) {
           if (mounted) {
             Navigator.pop(context);
@@ -122,6 +159,30 @@ class _TopicCreateScreenState extends State<TopicCreateScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              if (_imageBase64 != null)
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(
+                      base64Decode(_imageBase64!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _isLoading ? null : _pickImage,
+                icon: const Icon(Icons.image),
+                label:
+                    Text(_imageBase64 != null ? 'Change Image' : 'Add Image'),
               ),
               const SizedBox(height: 24),
               Consumer<TopicProvider>(
