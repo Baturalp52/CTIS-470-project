@@ -43,6 +43,9 @@ dependencies:
   google_sign_in_android: ^6.1.6
   google_sign_in_platform_interface: ^2.3.2
   insta_image_viewer: ^1.0.4
+  sqflite: ^2.3.2
+  sqflite_common_ffi: ^2.3.2+1
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

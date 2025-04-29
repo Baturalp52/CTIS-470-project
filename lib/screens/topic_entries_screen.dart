@@ -50,7 +50,11 @@ class _TopicEntriesScreenState extends State<TopicEntriesScreen> {
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const EntryCreateScreen()),
+      MaterialPageRoute(
+        builder: (context) => EntryCreateScreen(
+          topicId: _currentTopic.id!,
+        ),
+      ),
     );
 
     if (result != null && mounted) {
