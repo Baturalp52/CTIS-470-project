@@ -4,6 +4,7 @@ import '../providers/theme_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/auth_provider.dart';
 import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -74,6 +75,18 @@ class SettingsScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.password),
+                title: const Text('Change Password'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChangePasswordScreen(),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.logout),
