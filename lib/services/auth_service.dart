@@ -121,4 +121,25 @@ class AuthService {
   bool isLoggedIn() {
     return _prefs.getBool('isLoggedIn') ?? false;
   }
+
+  Future<bool> validatePassword(String password) async {
+    if (currentUser != null) {
+      final credential = EmailAuthProvider.credential(
+        email: currentUser!.email!,
+        password: password,
+      );
+      var result = await currentUser!.reauthenticateWithCredential(credential);
+      return result.user != null;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> updateUserPassword(String newPassword) async {
+    if (currentUser != null) {
+      await currentUser!.updatePassword(newPassword);
+    } else {
+      throw Exception('User not authenticated');
+    }
+  }
 }
