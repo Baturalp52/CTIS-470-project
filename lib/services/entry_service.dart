@@ -50,6 +50,26 @@ class EntryService extends FirestoreService {
     );
   }
 
+  Stream<List<EntryModel>> streamLikedEntries(String userId) {
+    return streamCollection(
+      collection,
+      EntryModel.fromMap,
+      queryBuilder: (query) {
+        return query.where('likedBy', arrayContains: userId);
+      },
+    );
+  }
+
+  Stream<List<EntryModel>> streamDislikedEntries(String userId) {
+    return streamCollection(
+      collection,
+      EntryModel.fromMap,
+      queryBuilder: (query) {
+        return query.where('dislikedBy', arrayContains: userId);
+      },
+    );
+  }
+
   Future<void> likeEntry(String entryId, String userId) async {
     final entry = await getEntry(entryId);
     if (entry == null) throw Exception('Entry not found');
