@@ -142,4 +142,8 @@ class AuthService {
       throw Exception('User not authenticated');
     }
   }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
 }

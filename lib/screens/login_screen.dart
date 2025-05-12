@@ -141,6 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text('Don\'t have an account? Register'),
                   ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed('/reset-password');
+                    },
+                    child: const Text('Forgot your password? Reset it'),
+                  ),
                 ],
               ),
             ),

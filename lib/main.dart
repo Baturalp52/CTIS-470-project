@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/forgot_password_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
@@ -88,6 +89,7 @@ class MyApp extends StatelessWidget {
             '/': (context) => const AuthWrapper(),
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
+            '/reset-password': (context) => const ResetPasswordScreen(),
             '/home': (context) => const HomeScreen(title: 'CTIS Dictionary'),
           },
         );
