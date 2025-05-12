@@ -93,6 +93,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       final dislikedEntries =
           await entryService.streamDislikedEntries(_currentUserData.id!).first;
 
+      // Get all unique creator IDs from entries
+      final Set<String> creatorIds = {
+        ...entries.map((e) => e.createdBy),
+        ...likedEntries.map((e) => e.createdBy),
+        ...dislikedEntries.map((e) => e.createdBy),
+      };
+
+      // Fetch all creators
+      final creators = await Future.wait(
+        creatorIds.map((id) => userService.getUser(id)),
+      );
+
+      // Create a map of creator IDs to UserModel
+      final Map<String, UserModel> creatorMap = {
+        for (var creator in creators)
+          if (creator != null) creator.id!: creator
+      };
+
+      // Set creators for all entries
+      for (final entry in entries) {
+        entry.creator = creatorMap[entry.createdBy];
+      }
+      for (final entry in likedEntries) {
+        entry.creator = creatorMap[entry.createdBy];
+      }
+      for (final entry in dislikedEntries) {
+        entry.creator = creatorMap[entry.createdBy];
+      }
+
       setState(() {
         _userEntriesByTopic = entriesByTopic;
         _likedEntries = likedEntries;
@@ -308,7 +337,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
-                        'liked entries',
+                        'Liked entries',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -325,7 +354,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
-                        'disliked entries',
+                        'Disliked entries',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
