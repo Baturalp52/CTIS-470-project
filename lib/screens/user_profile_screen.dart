@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_model.dart';
-import '../models/topic_model.dart';
-import '../models/entry_model.dart';
 import '../widgets/profile_header.dart';
-import '../widgets/entry_card.dart';
-import '../services/topic_service.dart';
-import '../services/entry_service.dart';
+import '../widgets/user_entries_tab.dart';
+import '../widgets/liked_entries_tab.dart';
+import '../widgets/disliked_entries_tab.dart';
 import '../services/user_service.dart';
-import 'topic_entries_screen.dart';
 import 'settings_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -25,19 +22,25 @@ class UserProfileScreen extends StatefulWidget {
   State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _UserProfileScreenState extends State<UserProfileScreen> {
-  Map<TopicModel, List<EntryModel>> _userEntriesByTopic = {};
+class _UserProfileScreenState extends State<UserProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late UserModel _currentUserData;
   bool _isLoading = true;
   String? _error;
-  late UserModel _currentUserData;
-  List<EntryModel> _likedEntries = [];
-  List<EntryModel> _dislikedEntries = [];
 
   @override
   void initState() {
     super.initState();
     _currentUserData = widget.userData;
+    _tabController = TabController(length: 3, vsync: this);
     _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -48,8 +51,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     try {
       final userService = Provider.of<UserService>(context, listen: false);
-      final topicService = Provider.of<TopicService>(context, listen: false);
-      final entryService = Provider.of<EntryService>(context, listen: false);
 
       // Get updated user data
       if (widget.isCurrentUser) {
@@ -61,71 +62,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         }
       }
 
-      // Get all topics created by the user
-      final topics = await topicService
-          .streamTopics(
-            createdBy: _currentUserData.id!,
-          )
-          .first;
-
-      // Get all entries created by the user
-      final entries = await entryService
-          .streamEntries(
-            createdBy: _currentUserData.id!,
-          )
-          .first;
-
-      // Group entries by topic
-      final Map<TopicModel, List<EntryModel>> entriesByTopic = {};
-      for (final topic in topics) {
-        final topicEntries =
-            entries.where((entry) => entry.topicId == topic.id).toList();
-        if (topicEntries.isNotEmpty) {
-          entriesByTopic[topic] = topicEntries;
-        }
-      }
-
-      // Get liked entries by the user
-      final likedEntries =
-          await entryService.streamLikedEntries(_currentUserData.id!).first;
-
-      // Get disliked entries by the user
-      final dislikedEntries =
-          await entryService.streamDislikedEntries(_currentUserData.id!).first;
-
-      // Get all unique creator IDs from entries
-      final Set<String> creatorIds = {
-        ...entries.map((e) => e.createdBy),
-        ...likedEntries.map((e) => e.createdBy),
-        ...dislikedEntries.map((e) => e.createdBy),
-      };
-
-      // Fetch all creators
-      final creators = await Future.wait(
-        creatorIds.map((id) => userService.getUser(id)),
-      );
-
-      // Create a map of creator IDs to UserModel
-      final Map<String, UserModel> creatorMap = {
-        for (var creator in creators)
-          if (creator != null) creator.id!: creator
-      };
-
-      // Set creators for all entries
-      for (final entry in entries) {
-        entry.creator = creatorMap[entry.createdBy];
-      }
-      for (final entry in likedEntries) {
-        entry.creator = creatorMap[entry.createdBy];
-      }
-      for (final entry in dislikedEntries) {
-        entry.creator = creatorMap[entry.createdBy];
-      }
-
       setState(() {
-        _userEntriesByTopic = entriesByTopic;
-        _likedEntries = likedEntries;
-        _dislikedEntries = dislikedEntries;
         _isLoading = false;
       });
     } catch (e) {
@@ -142,9 +79,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topicService = Provider.of<TopicService>(context);
-    final entryService = Provider.of<EntryService>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCurrentUser
@@ -167,207 +101,84 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ]
             : null,
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              ProfileHeader(userData: _currentUserData),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? Center(child: Text(_error!))
-                      : _userEntriesByTopic.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text('No entries found'),
-                              ),
-                            )
-                          : StreamBuilder<List<TopicModel>>(
-                              stream: topicService.streamTopics(
-                                createdBy: _currentUserData.id!,
-                              ),
-                              builder: (context, topicSnapshot) {
-                                if (topicSnapshot.hasError) {
-                                  return Center(
-                                      child: Text(
-                                          'Error: ${topicSnapshot.error}'));
-                                }
-
-                                if (!topicSnapshot.hasData) {
-                                  return const Center(
-                                      child: CircularProgressIndicator());
-                                }
-
-                                return StreamBuilder<List<EntryModel>>(
-                                  stream: entryService.streamEntries(
-                                    createdBy: _currentUserData.id!,
-                                  ),
-                                  builder: (context, entrySnapshot) {
-                                    if (entrySnapshot.hasError) {
-                                      return Center(
-                                          child: Text(
-                                              'Error: ${entrySnapshot.error}'));
-                                    }
-
-                                    if (!entrySnapshot.hasData) {
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-
-                                    // Update entries by topic with new data
-                                    final topics = topicSnapshot.data!;
-                                    final entries = entrySnapshot.data!;
-                                    final Map<TopicModel, List<EntryModel>>
-                                        updatedEntriesByTopic = {};
-
-                                    // Set creator for all entries
-                                    final updatedEntries = entries.map((entry) {
-                                      entry.creator = _currentUserData;
-                                      return entry;
-                                    }).toList();
-
-                                    for (final topic in topics) {
-                                      final topicEntries = updatedEntries
-                                          .where((entry) =>
-                                              entry.topicId == topic.id)
-                                          .toList();
-                                      if (topicEntries.isNotEmpty) {
-                                        updatedEntriesByTopic[topic] =
-                                            topicEntries;
-                                      }
-                                    }
-
-                                    return ListView.builder(
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      itemCount: updatedEntriesByTopic.length,
-                                      itemBuilder: (context, index) {
-                                        final topic = updatedEntriesByTopic.keys
-                                            .elementAt(index);
-                                        final entries =
-                                            updatedEntriesByTopic[topic]!;
-
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            // Topic Header
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(16.0),
-                                              child: InkWell(
-                                                onTap: () async {
-                                                  final result =
-                                                      await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          TopicEntriesScreen(
-                                                              topic: topic),
-                                                    ),
-                                                  );
-                                                  if (result == true) {
-                                                    // Refresh data if topic was deleted
-                                                    _refreshData();
-                                                  }
-                                                },
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      topic.title,
-                                                      style: const TextStyle(
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      topic.description,
-                                                      style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall
-                                                            ?.color,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.edit,
-                                                            size: 16,
-                                                            color: Colors
-                                                                .grey[600]),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          '${entries.length} entries',
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            // Entries List
-                                            ...entries.map((entry) =>
-                                                EntryCard(entry: entry)),
-                                            const Divider(height: 1),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-              if (_likedEntries.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Liked entries',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!))
+              : NestedScrollView(
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      SliverToBoxAdapter(
+                        child: ProfileHeader(userData: _currentUserData),
+                      ),
+                      SliverPersistentHeader(
+                        delegate: _SliverAppBarDelegate(
+                          TabBar(
+                            controller: _tabController,
+                            tabs: const [
+                              Tab(text: 'Entries'),
+                              Tab(text: 'Liked'),
+                              Tab(text: 'Disliked'),
+                            ],
+                          ),
+                        ),
+                        pinned: true,
+                      ),
+                    ];
+                  },
+                  body: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // Entries Tab
+                      RefreshIndicator(
+                        onRefresh: _refreshData,
+                        child: UserEntriesTab(
+                          userId: _currentUserData.id!,
+                          currentUserData: _currentUserData,
                         ),
                       ),
-                    ),
-                    ..._likedEntries.map((entry) => EntryCard(entry: entry)),
-                  ],
-                ),
-              if (_dislikedEntries.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Disliked entries',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      // Liked Entries Tab
+                      RefreshIndicator(
+                        onRefresh: _refreshData,
+                        child: LikedEntriesTab(
+                          userId: _currentUserData.id!,
                         ),
                       ),
-                    ),
-                    ..._dislikedEntries.map((entry) => EntryCard(entry: entry)),
-                  ],
+                      // Disliked Entries Tab
+                      RefreshIndicator(
+                        onRefresh: _refreshData,
+                        child: DislikedEntriesTab(
+                          userId: _currentUserData.id!,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-            ],
-          ),
-        ),
-      ),
     );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar _tabBar;
+
+  _SliverAppBarDelegate(this._tabBar);
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

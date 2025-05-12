@@ -17,6 +17,30 @@ class EntryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  Future<List<EntryModel>> _populateCreators(List<EntryModel> entries) async {
+    // Get unique creator IDs
+    final Set<String> creatorIds =
+        entries.map((entry) => entry.createdBy).toSet();
+
+    // Fetch all creators
+    final creators = await Future.wait(
+      creatorIds.map((id) => _userService.getUser(id)),
+    );
+
+    // Create a map of creator IDs to UserModel
+    final Map<String, UserModel> creatorMap = {
+      for (var creator in creators)
+        if (creator != null) creator.id!: creator
+    };
+
+    // Set creators to entries
+    for (final entry in entries) {
+      entry.creator = creatorMap[entry.createdBy];
+    }
+
+    return entries;
+  }
+
   Future<void> loadEntries(String topicId) async {
     _isLoading = true;
     _error = null;
@@ -24,27 +48,7 @@ class EntryProvider extends ChangeNotifier {
 
     try {
       _entries = await _entryService.streamEntries(topicId: topicId).first;
-
-      // Get unique creator IDs
-      final Set<String> creatorIds =
-          _entries.map((entry) => entry.createdBy).toSet();
-
-      // Fetch all creators
-      final creators = await Future.wait(
-        creatorIds.map((id) => _userService.getUser(id)),
-      );
-
-      // Create a map of creator IDs to UserModel
-      final Map<String, UserModel> creatorMap = {
-        for (var creator in creators)
-          if (creator != null) creator.id!: creator
-      };
-
-      // Set creators to entries
-      for (final entry in _entries) {
-        entry.creator = creatorMap[entry.createdBy];
-      }
-
+      _entries = await _populateCreators(_entries);
       _error = null;
     } catch (e) {
       _error = 'Failed to load entries: $e';
@@ -56,5 +60,25 @@ class EntryProvider extends ChangeNotifier {
 
   Future<void> refreshEntries(String topicId) async {
     await loadEntries(topicId);
+  }
+
+  Future<List<EntryModel>> getLikedEntries(String userId) async {
+    try {
+      final entries = await _entryService.streamLikedEntries(userId).first;
+      return await _populateCreators(entries);
+    } catch (e) {
+      _error = 'Failed to load liked entries: $e';
+      return [];
+    }
+  }
+
+  Future<List<EntryModel>> getDislikedEntries(String userId) async {
+    try {
+      final entries = await _entryService.streamDislikedEntries(userId).first;
+      return await _populateCreators(entries);
+    } catch (e) {
+      _error = 'Failed to load disliked entries: $e';
+      return [];
+    }
   }
 }
