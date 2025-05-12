@@ -34,7 +34,8 @@ class TopicProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> createTopic(String title, String description) async {
+  Future<bool> createTopic(String title, String description,
+      {String? imageBase64}) async {
     try {
       final userId = _authService.currentUser?.uid;
       if (userId == null) {
@@ -46,6 +47,7 @@ class TopicProvider with ChangeNotifier {
         title: title,
         description: description,
         createdBy: userId,
+        imageBase64: imageBase64,
       );
 
       await _topicService.createTopic(topic);
@@ -58,8 +60,8 @@ class TopicProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> updateTopic(
-      TopicModel topic, String title, String description) async {
+  Future<bool> updateTopic(TopicModel topic, String title, String description,
+      {String? imageBase64}) async {
     try {
       final userId = _authService.currentUser?.uid;
       if (userId == null) {
@@ -77,6 +79,7 @@ class TopicProvider with ChangeNotifier {
         title: title,
         description: description,
         createdBy: topic.createdBy,
+        imageBase64: imageBase64,
         createdAt: topic.createdAt,
       );
 

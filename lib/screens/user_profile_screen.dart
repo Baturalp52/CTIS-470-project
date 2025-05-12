@@ -30,6 +30,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isLoading = true;
   String? _error;
   late UserModel _currentUserData;
+  List<EntryModel> _likedEntries = [];
+  List<EntryModel> _dislikedEntries = [];
 
   @override
   void initState() {
@@ -83,8 +85,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         }
       }
 
+      // Get liked entries by the user
+      final likedEntries =
+          await entryService.streamLikedEntries(_currentUserData.id!).first;
+
+      // Get disliked entries by the user
+      final dislikedEntries =
+          await entryService.streamDislikedEntries(_currentUserData.id!).first;
+
       setState(() {
         _userEntriesByTopic = entriesByTopic;
+        _likedEntries = likedEntries;
+        _dislikedEntries = dislikedEntries;
         _isLoading = false;
       });
     } catch (e) {
@@ -289,6 +301,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 );
                               },
                             ),
+              if (_likedEntries.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'liked entries',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    ..._likedEntries.map((entry) => EntryCard(entry: entry)),
+                  ],
+                ),
+              if (_dislikedEntries.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'disliked entries',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    ..._dislikedEntries.map((entry) => EntryCard(entry: entry)),
+                  ],
+                ),
             ],
           ),
         ),
