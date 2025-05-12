@@ -34,65 +34,65 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-Future<void> _updateUserPassword() async {
-  if (_formKey.currentState!.validate()) {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _updateUserPassword() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    try {
-      final isPasswordValid = await authProvider.validatePassword(_currentPasswordController.text);
-      if (!isPasswordValid) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      try {
+        final isPasswordValid = await authProvider.validatePassword(_currentPasswordController.text);
+        if (!isPasswordValid) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _currentPasswordError = 'Incorrect current password';
+            });
+          }
+          return;
+        } else {
+          setState(() {
+            _currentPasswordError = null;
+          });
+        }
+
+        if (_newPasswordController.text != _newPasswordAgainController.text) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _newPasswordAgainError = 'Passwords do not match!';
+            });
+          }
+          return;
+        } else {
+          setState(() {
+            _newPasswordAgainError = null;
+          });
+
+          await authProvider.updateUserPassword(
+            _newPasswordController.text,
+          );
+
+          if (mounted) {
+            Navigator.pop(context);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating password: $e')),
+          );
+        }
+      } finally {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _currentPasswordError = 'Incorrect current password';
           });
         }
-        return;
-      } else {
-        setState(() {
-          _currentPasswordError = null;
-        });
-      }
-
-      if (_newPasswordController.text != _newPasswordAgainController.text) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _newPasswordAgainError = 'Passwords do not match!';
-          });
-        }
-        return;
-      } else {
-        setState(() {
-          _newPasswordAgainError = null;
-        });
-
-        await authProvider.updateUserPassword(
-          _newPasswordController.text,
-        );
-
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating password: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +140,6 @@ Future<void> _updateUserPassword() async {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your password';
                       }
-
                       return null;
                     },
                     enabled: !_isLoading,
@@ -153,6 +152,15 @@ Future<void> _updateUserPassword() async {
                       border: OutlineInputBorder(),
                     ),
                     obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the new password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -163,6 +171,15 @@ Future<void> _updateUserPassword() async {
                       errorText: _newPasswordAgainError,
                     ),
                     obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the new password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
                     enabled: !_isLoading,
                   ),
                 ],
